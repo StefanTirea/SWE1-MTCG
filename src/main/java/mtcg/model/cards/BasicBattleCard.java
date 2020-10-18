@@ -8,7 +8,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@Builder
 public abstract class BasicBattleCard implements BattleCard {
 
     private final String name;
