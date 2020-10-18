@@ -7,14 +7,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MonsterType {
 
-    GOBLIN("Goblin"),
-    DRAGON("Dragon"),
-    WIZZARD("Wizzard"),
-    KNIGHT("Knight"),
-    KRAKEN("Kraken"),
-    ELV("Elv"),
-    ORC("Orc"),
-    CHICKEN("Chicken");
+    GOBLIN("Goblin", 3, 8),
+    DRAGON("Dragon", 20, 30),
+    WIZZARD("Wizzard", 10, 25),
+    KNIGHT("Knight", 18, 28),
+    KRAKEN("Kraken", 8, 22),
+    ELF("Elf", 5, 12),
+    ORC("Orc", 4, 8),
+    CHICKEN("Chicken", 1, 5);
 
     private final String text;
+    private final int minDamage;
+    private final int maxDamage;
 }

@@ -57,9 +57,9 @@ class SpellCardAttackingTest {
 
     @Test
     void attack_damageHigherVsMonster() {
-        when(currentSpellCard.getDamage()).thenReturn(10f);
+        when(currentSpellCard.getDamage()).thenReturn(10);
         doReturn(NOT_EFFECTIVE, NO_EFFECT, EFFECTIVE).when(currentSpellCard).getEffectiveMultiplier(any());
-        when(otherMonsterCard.getDamage()).thenReturn(5f);
+        when(otherMonsterCard.getDamage()).thenReturn(5);
         doReturn(NO_EFFECT).when(otherMonsterCard).getEffectiveMultiplier(any());
 
         assertFalse(currentSpellCard.attack(otherMonsterCard));
@@ -69,9 +69,9 @@ class SpellCardAttackingTest {
 
     @Test
     void attack_damageLowerVsMonster() {
-        when(currentSpellCard.getDamage()).thenReturn(5f);
+        when(currentSpellCard.getDamage()).thenReturn(5);
         doReturn(NOT_EFFECTIVE, NO_EFFECT, EFFECTIVE).when(currentSpellCard).getEffectiveMultiplier(any());
-        when(otherMonsterCard.getDamage()).thenReturn(10f);
+        when(otherMonsterCard.getDamage()).thenReturn(10);
         doReturn(NO_EFFECT).when(otherMonsterCard).getEffectiveMultiplier(any());
 
         assertFalse(currentSpellCard.attack(otherMonsterCard));

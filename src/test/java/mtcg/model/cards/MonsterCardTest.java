@@ -34,33 +34,33 @@ class MonsterCardTest {
 
     @Test
     void attack_damageHigherVsMonster_returnsTrue() {
-        when(currentMonsterCard.getDamage()).thenReturn(10f);
-        when(otherMonsterCard.getDamage()).thenReturn(5f);
+        when(currentMonsterCard.getDamage()).thenReturn(10);
+        when(otherMonsterCard.getDamage()).thenReturn(5);
 
         assertTrue(currentMonsterCard.attack(otherMonsterCard));
     }
 
     @Test
     void attack_damageLowerVsMonster_returnsFalse() {
-        when(currentMonsterCard.getDamage()).thenReturn(5f);
-        when(otherMonsterCard.getDamage()).thenReturn(10f);
+        when(currentMonsterCard.getDamage()).thenReturn(5);
+        when(otherMonsterCard.getDamage()).thenReturn(10);
 
         assertFalse(currentMonsterCard.attack(otherMonsterCard));
     }
 
     @Test
     void attack_damageSameVsMonster_returnsFalse() {
-        when(currentMonsterCard.getDamage()).thenReturn(5f);
-        when(otherMonsterCard.getDamage()).thenReturn(5f);
+        when(currentMonsterCard.getDamage()).thenReturn(5);
+        when(otherMonsterCard.getDamage()).thenReturn(5);
 
         assertFalse(currentMonsterCard.attack(otherMonsterCard));
     }
 
     @Test
     void attack_damageHigherVsSpell() {
-        when(currentMonsterCard.getDamage()).thenReturn(10f);
+        when(currentMonsterCard.getDamage()).thenReturn(10);
         doReturn(NOT_EFFECTIVE, NO_EFFECT, EFFECTIVE).when(currentMonsterCard).getEffectiveMultiplier(any());
-        when(otherSpellCard.getDamage()).thenReturn(5f);
+        when(otherSpellCard.getDamage()).thenReturn(5);
         doReturn(NO_EFFECT).when(otherSpellCard).getEffectiveMultiplier(any());
 
         assertFalse(currentMonsterCard.attack(otherSpellCard));
@@ -70,9 +70,9 @@ class MonsterCardTest {
 
     @Test
     void attack_damageLowerVsSpell() {
-        when(currentMonsterCard.getDamage()).thenReturn(5f);
+        when(currentMonsterCard.getDamage()).thenReturn(5);
         doReturn(NOT_EFFECTIVE, NO_EFFECT, EFFECTIVE).when(currentMonsterCard).getEffectiveMultiplier(any());
-        when(otherSpellCard.getDamage()).thenReturn(10f);
+        when(otherSpellCard.getDamage()).thenReturn(10);
         doReturn(NO_EFFECT).when(otherSpellCard).getEffectiveMultiplier(any());
 
         assertFalse(currentMonsterCard.attack(otherSpellCard));
