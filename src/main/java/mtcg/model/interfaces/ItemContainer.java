@@ -12,6 +12,4 @@ public interface ItemContainer extends Item, Tradable {
     String getName();
 
     String getDescription();
-
-    void open();
 }

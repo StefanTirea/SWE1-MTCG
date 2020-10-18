@@ -2,9 +2,9 @@ package mtcg.model.interfaces;
 
 public interface Authentication {
 
-    public String getUsername();
+    String getUsername();
 
-    public String getPasswordHash();
+    String getPasswordHash();
 
-    public String getToken();
+    String getToken();
 }

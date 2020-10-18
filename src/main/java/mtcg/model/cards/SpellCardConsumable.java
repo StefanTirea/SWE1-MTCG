@@ -1,10 +1,10 @@
 package mtcg.model.cards;
 
-import mtcg.model.interfaces.Card;
-import mtcg.model.interfaces.Consumable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import mtcg.model.interfaces.Card;
+import mtcg.model.interfaces.Consumable;
 
 @Builder
 @Data

@@ -10,9 +10,9 @@ public interface BasicUser extends Authentication {
 
     List<Item> getInventory();
 
-    List<List<Card>> getDecks();
+    List<List<BattleCard>> getDecks();
 
-    List<Card> getDeck();
+    List<BattleCard> getDeck();
 
     List<Card> getStack();
 }
