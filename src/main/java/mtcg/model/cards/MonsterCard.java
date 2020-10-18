@@ -20,7 +20,7 @@ public class MonsterCard extends BasicBattleCard {
     private final MonsterType monsterType;
 
     @Builder
-    public MonsterCard(String name, int mana, float damage, MonsterType monsterType, ElementType elementType) {
+    public MonsterCard(String name, int mana, int damage, MonsterType monsterType, ElementType elementType) {
         super(name, mana, Math.max(damage, 0), elementType);
         this.monsterType = monsterType;
     }

@@ -5,7 +5,7 @@ import mtcg.model.enums.ElementType;
 
 public interface BattleCard extends Card, Attackable {
 
-    float getDamage();
+    int getDamage();
 
     ElementType getElementType();
 

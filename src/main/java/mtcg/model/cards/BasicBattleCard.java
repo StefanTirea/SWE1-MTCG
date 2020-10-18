@@ -5,7 +5,12 @@ import lombok.Data;
 import lombok.NonNull;
 import mtcg.model.enums.Effectiveness;
 import mtcg.model.enums.ElementType;
+import mtcg.model.enums.RuleResult;
 import mtcg.model.interfaces.BattleCard;
+import mtcg.service.CardRules;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -13,7 +18,7 @@ public abstract class BasicBattleCard implements BattleCard {
 
     private final String name;
     private final int mana;
-    private final float damage;
+    private final int damage;
     @NonNull
     private final ElementType elementType;
 
@@ -35,6 +40,20 @@ public abstract class BasicBattleCard implements BattleCard {
 
     @Override
     public Boolean attack(BattleCard otherCard) {
-        return null;
+        List<RuleResult> results = new ArrayList<>();
+        if (this instanceof MonsterCard && otherCard instanceof MonsterCard) {
+            results.add(CardRules.checkRulesMonsterVsMonster((MonsterCard) this, (MonsterCard) otherCard));
+        }
+        if (this instanceof MonsterCard && otherCard instanceof SpellCardAttacking) {
+            results.add(CardRules.checkRulesMonsterVsSpell((MonsterCard) this, (SpellCardAttacking) otherCard, false));
+        } else if (this instanceof SpellCardAttacking && otherCard instanceof MonsterCard) {
+            results.add(CardRules.checkRulesMonsterVsSpell((MonsterCard) otherCard, (SpellCardAttacking) this, true));
+        }
+
+        return results.stream()
+                .filter(result -> !result.equals(RuleResult.NOTHING))
+                .findAny()
+                .map(result -> result.equals(RuleResult.ATTACKER))
+                .orElse(null);
     }
 }
