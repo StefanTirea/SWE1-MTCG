@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toMap;
 @EqualsAndHashCode
 public class HttpRequest {
 
-    private final Gson gson = new Gson();
     private HttpVerb httpVerb;
     private String path;
     @Singular
