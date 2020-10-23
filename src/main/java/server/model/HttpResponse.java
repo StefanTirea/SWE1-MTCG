@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 public class HttpResponse {
 
     private static final String HTTP_VERSION = "HTTP/1.1";
-    private final Gson gson = new Gson();
     private HttpStatus httpStatus;
     @Singular
     private Map<String, String> headers;
@@ -28,12 +27,12 @@ public class HttpResponse {
     public String toString() {
         return String.format("%s %s %s\r\n", HTTP_VERSION, httpStatus.getHttpCode(), httpStatus.getHttpStatus()) +
                 getHeadersString() +
-                (Objects.nonNull(content) ? gson.toJson(content) : "");
+                (Objects.nonNull(content) ? new Gson().toJson(content) : "");
     }
 
     private String getHeadersString() {
         return headers.entrySet().stream()
                 .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining("\r\n")) + "\r\n\r\n";
+                .collect(Collectors.joining("\r\n")) + "\r\n";
     }
 }
