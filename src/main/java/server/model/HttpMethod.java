@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public enum HttpVerb {
+public enum HttpMethod {
 
     GET, POST, PUT, DELETE;
 }

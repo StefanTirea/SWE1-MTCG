@@ -1,11 +1,10 @@
 package server.model;
 
-import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.Singular;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -18,11 +17,13 @@ import static java.util.stream.Collectors.toMap;
 
 @Builder(toBuilder = true)
 @Getter
+@Setter
 @EqualsAndHashCode
 public class HttpRequest {
 
-    private HttpVerb httpVerb;
+    private HttpMethod httpMethod;
     private String path;
+    private List<Object> pathVariables;
     @Singular
     private Map<String, String> headers;
     private String content;
@@ -33,8 +34,11 @@ public class HttpRequest {
         }
         List<String> startLine = Arrays.asList(request.get(0).split(" "));
 
-        HttpVerb httpVerb = HttpVerb.valueOf(startLine.get(0));
+        HttpMethod httpMethod = HttpMethod.valueOf(startLine.get(0));
         String path = startLine.get(1);
+        if (path.endsWith("/")) {
+            path = path.substring(path.length()-2, path.length()-1);
+        }
 
         Map<String, String> headers = request.stream()
                 .skip(1)
@@ -49,10 +53,14 @@ public class HttpRequest {
                 .collect(Collectors.joining());
 
         return Optional.of(HttpRequest.builder()
-                .httpVerb(httpVerb)
+                .httpMethod(httpMethod)
                 .path(path)
                 .headers(headers)
                 .content(content)
                 .build());
+    }
+
+    public long getContentLength() {
+        return Long.parseLong(headers.getOrDefault("Content-Length", "0"));
     }
 }
