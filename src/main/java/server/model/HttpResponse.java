@@ -33,6 +33,6 @@ public class HttpResponse {
     private String getHeadersString() {
         return headers.entrySet().stream()
                 .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining("\r\n")) + "\r\n";
+                .collect(Collectors.joining("\r\n")) + "\r\n\r\n";
     }
 }
