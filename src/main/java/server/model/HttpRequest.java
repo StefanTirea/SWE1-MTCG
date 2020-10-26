@@ -23,7 +23,7 @@ public class HttpRequest {
 
     private HttpMethod httpMethod;
     private String path;
-    private List<Object> pathVariables;
+    private List<String> pathVariables;
     @Singular
     private Map<String, String> headers;
     private String content;
@@ -36,8 +36,9 @@ public class HttpRequest {
 
         HttpMethod httpMethod = HttpMethod.valueOf(startLine.get(0));
         String path = startLine.get(1);
-        if (path.endsWith("/")) {
-            path = path.substring(path.length()-2, path.length()-1);
+
+        if (path.length() != 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length()-1);
         }
 
         Map<String, String> headers = request.stream()
@@ -47,16 +48,10 @@ public class HttpRequest {
                 .filter(header -> header.size() == 2)
                 .collect(toMap(header -> header.get(0), header -> header.get(1)));
 
-        String content = request.stream()
-                .dropWhile(StringUtils::isNotBlank)
-                .skip(1)
-                .collect(Collectors.joining());
-
         return Optional.of(HttpRequest.builder()
                 .httpMethod(httpMethod)
                 .path(path)
                 .headers(headers)
-                .content(content)
                 .build());
     }
 

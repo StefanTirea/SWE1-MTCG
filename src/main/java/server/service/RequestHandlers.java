@@ -1,68 +1,103 @@
 package server.service;
 
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.ArrayUtils;
 import server.controller.ErrorController;
-import server.controller.TestController;
 import server.model.HttpExchange;
-import server.model.HttpMethod;
 import server.model.HttpResponse;
-import server.model.HttpStatus;
+import server.model.PathHandler;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static server.model.HttpMethod.DELETE;
-import static server.model.HttpMethod.GET;
-import static server.model.HttpMethod.POST;
+import java.util.stream.Stream;
 
 public class RequestHandlers {
 
-    private final Map<String, Map<HttpMethod, Function<HttpExchange, HttpResponse>>> handlers = new HashMap<>();
-    private final TestController testController = new TestController();
+    private final List<PathHandler> handlers = new ArrayList<>();
+    private final List<Object> controllerObjects = new ArrayList();
+    private final HashMap<Class<?>, Function<String,Object>> converters = new HashMap();
 
     public RequestHandlers() {
-        registerHandlers();
+        ReflectionControllerFinder.scan(this::addRequestHandler, this::addObject);
+        converters.put(int.class, Integer::parseInt);
+        converters.put(Integer.class, Integer::parseInt);
+        converters.put(String.class, o -> o);
+        converters.put(long.class, Long::parseLong);
+        converters.put(Long.class, Long::parseLong);
+        converters.put(Double.class, Double::parseDouble);
+        converters.put(Double.class, Double::parseDouble);
+        converters.put(Float.class, Float::parseFloat);
+        converters.put(float.class, Float::parseFloat);
+        converters.put(Boolean.class, Boolean::parseBoolean);
+        converters.put(boolean.class, Boolean::parseBoolean);
     }
 
     public HttpResponse getHandlerOrThrow(HttpExchange exchange) {
-        String matchingPath = exchange.getRequest().getPath();
-        HttpMethod method = exchange.getRequest().getHttpMethod();
-        Optional<Pair<String, Function<HttpExchange, HttpResponse>>> fnPair = handlers.entrySet().stream()
-                .filter(entry -> matchingPath.matches(entry.getKey()))
-                .filter(entry -> entry.getValue().containsKey(method))
-                .map(entry -> Pair.of(entry.getKey(), entry.getValue().get(method)))
+        Optional<PathHandler> pathHandler = handlers.stream()
+                .filter(handler -> exchange.getRequestPath().matches(handler.getRegexPath()))
+                .filter(handler -> handler.getHttpMethod().equals(exchange.getRequestHttpMethod()))
                 .findFirst();
 
-        if (fnPair.isPresent()) {
-            String[] myPath = "/messages/{id}".split("/");
-            String[] requestPath = matchingPath.split("/");
-            List<Object> variables = new ArrayList<>();
-            for (int i = 0; i < myPath.length; i++) {
-                if (myPath[i].startsWith("{")) {
-                    variables.add(requestPath[i]);
-                }
-            }
-            exchange.getRequest().setPathVariables(variables);
-        }
+        pathHandler.ifPresent(handler -> extractPathVariables(handler.getPath(), exchange));
 
-        return fnPair
-                .map(Pair::getRight)
-                .map(fn -> fn.apply(exchange))
+        return pathHandler
+                .map(handler -> {
+                    try {
+                        Method controllerMethod = handler.getMethod();
+                        Object  clazzObject = null;
+                        for (Object object : controllerObjects) {
+                            if (object.getClass().equals(controllerMethod.getDeclaringClass())) {
+                                clazzObject = object;
+                                break;
+                            }
+                        }
+                        if (clazzObject == null) {
+                            return null;
+                        }
+                        List<Object> pathVars = new ArrayList<>();
+                        for (int i = 0; i < exchange.getRequest().getPathVariables().size(); i++) {
+                            Class<?> clazz = handler.getPathVariableTypes().get(i);
+                            Object converted = converters.get(clazz).apply(exchange.getRequest().getPathVariables().get(i));
+                            pathVars.add(converted);
+                        }
+
+                        return  (HttpResponse) controllerMethod.invoke(clazzObject, ArrayUtils.addAll(List.of(exchange).toArray(), pathVars.toArray()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
                 .orElse(ErrorController.getNotFoundError());
     }
 
-    private void registerHandlers() {
-        addRequestHandler("/", GET, testController::helloWorld);
-        addRequestHandler("/messages", GET, testController::getMessages);
-        addRequestHandler("/messages/{id}", DELETE, testController::deleteMessage);
-        addRequestHandler("/messages", POST, testController::createMessage);
-        addRequestHandler("/messages", DELETE, testController::createMessage);
+    private void addObject(Object object) {
+        controllerObjects.add(object);
+    }
+
+    private void addRequestHandler(PathHandler pathHandler) {
+        if (!handlers.contains(pathHandler)) {
+            handlers.add(pathHandler);
+        }
+    }
+
+    // TODO: https://stackoverflow.com/questions/1224934/java-extract-strings-with-regex
+    private void extractPathVariables(String controllerPath, HttpExchange exchange) {
+        String[] path = controllerPath.split("/");
+        String[] requestingPath = exchange.getRequestPath().split("/");
+        List<String> pathVariables = new ArrayList<>();
+        for (int i = 0; i < path.length; i++) {
+            if (path[i].startsWith("{")) {
+                pathVariables.add(requestingPath[i]);
+            }
+        }
+        exchange.getRequest().setPathVariables(pathVariables);
     }
 
     public static String getRegex(String path) {
@@ -74,12 +109,5 @@ public class RequestHandlers {
             regex = regex.replace(variable, "[^/]*");
         }
         return regex;
-    }
-
-    private void addRequestHandler(String path, HttpMethod verb, Function<HttpExchange, HttpResponse> fn) {
-        if (!handlers.containsKey(getRegex(path))) {
-            handlers.put(getRegex(path), new HashMap<>());
-        }
-        handlers.get(getRegex(path)).put(verb, fn);
     }
 }
