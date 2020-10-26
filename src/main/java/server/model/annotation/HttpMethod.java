@@ -7,9 +7,8 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
-@Target({ ElementType.METHOD })
-@HttpMethod
-public @interface Get {
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+public @interface HttpMethod {
 
     String value() default "";
 }

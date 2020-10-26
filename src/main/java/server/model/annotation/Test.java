@@ -8,8 +8,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
 @Target({ ElementType.METHOD })
-@HttpMethod
-public @interface Get {
+public @interface Test {
 
-    String value() default "";
 }
