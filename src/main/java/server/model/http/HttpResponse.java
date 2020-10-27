@@ -1,4 +1,4 @@
-package server.model;
+package server.model.http;
 
 import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
+import server.model.enums.HttpStatus;
 
 import java.util.Map;
 import java.util.Objects;
@@ -35,4 +36,6 @@ public class HttpResponse {
                 .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining("\r\n")) + "\r\n\r\n";
     }
+
+    //TODO: add method for a default response object with defaults headers, ....
 }

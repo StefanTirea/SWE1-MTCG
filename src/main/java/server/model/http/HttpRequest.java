@@ -1,4 +1,4 @@
-package server.model;
+package server.model.http;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -6,12 +6,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
 import org.apache.commons.lang3.StringUtils;
+import server.model.enums.HttpMethod;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -28,7 +30,7 @@ public class HttpRequest {
     private Map<String, String> headers;
     private String content;
 
-    public static Optional<HttpRequest> build(List<String> request) {
+    public static Optional<HttpRequest> build(List<String> request, BufferedReader br) throws IOException {
         if (request.isEmpty()) {
             return Optional.empty();
         }
@@ -38,7 +40,7 @@ public class HttpRequest {
         String path = startLine.get(1);
 
         if (path.length() != 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length()-1);
+            path = path.substring(0, path.length() - 1);
         }
 
         Map<String, String> headers = request.stream()
@@ -48,14 +50,33 @@ public class HttpRequest {
                 .filter(header -> header.size() == 2)
                 .collect(toMap(header -> header.get(0), header -> header.get(1)));
 
+        String content = readBodyContent(headers, br);
+
         return Optional.of(HttpRequest.builder()
                 .httpMethod(httpMethod)
                 .path(path)
                 .headers(headers)
+                .content(content)
                 .build());
     }
 
-    public long getContentLength() {
+    private static String readBodyContent(Map<String, String> headers, BufferedReader br) throws IOException {
+        long contentLength = getContentLength(headers);
+        if (contentLength > 0) {
+            int read;
+            StringBuilder sb = new StringBuilder();
+            while ((read = br.read()) != -1) {
+                sb.append((char) read);
+                if (sb.length() == contentLength)
+                    break;
+            }
+            return sb.toString();
+        } else {
+            return "";
+        }
+    }
+
+    private static long getContentLength(Map<String, String> headers) {
         return Long.parseLong(headers.getOrDefault("Content-Length", "0"));
     }
 }

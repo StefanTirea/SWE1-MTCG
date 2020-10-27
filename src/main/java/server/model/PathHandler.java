@@ -2,10 +2,10 @@ package server.model;
 
 import lombok.Builder;
 import lombok.Data;
+import server.model.enums.HttpMethod;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.function.Function;
 
 @Builder
 @Data

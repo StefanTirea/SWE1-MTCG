@@ -7,7 +7,8 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
-@Target({ ElementType.METHOD })
-public @interface Test {
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+public @interface RequestMethod {
 
+    String value() default "";
 }

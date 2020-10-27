@@ -1,9 +1,10 @@
-package server.model;
+package server.model.http;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import mtcg.model.user.User;
+import server.model.enums.HttpMethod;
 
 import java.util.Optional;
 

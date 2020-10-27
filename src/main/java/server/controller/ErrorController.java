@@ -1,7 +1,7 @@
 package server.controller;
 
-import server.model.HttpResponse;
-import server.model.HttpStatus;
+import server.model.http.HttpResponse;
+import server.model.enums.HttpStatus;
 
 import java.util.Map;
 
@@ -16,13 +16,14 @@ public class ErrorController {
     public static HttpResponse getBadRequestError(String message) {
         return HttpResponse.builder()
                 .httpStatus(HttpStatus.BAD_REQUEST)
-                .content(Map.of("error", message))
+                .content(Map.of("message", message))
                 .build();
     }
 
-    public static HttpResponse getClientClosedRequestError() {
+    public static HttpResponse getInternalServerError(String message, String exception) {
         return HttpResponse.builder()
-                .httpStatus(HttpStatus.CLIENT_CLOSED_REQUEST)
+                .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .content(Map.of("message", message, "exception", exception))
                 .build();
     }
 }
