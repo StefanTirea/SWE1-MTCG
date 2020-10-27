@@ -1,4 +1,4 @@
-package server.model;
+package server.model.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

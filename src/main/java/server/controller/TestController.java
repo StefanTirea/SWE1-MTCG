@@ -1,10 +1,9 @@
 package server.controller;
 
-import server.model.HttpExchange;
-import server.model.HttpResponse;
-import server.model.HttpStatus;
+import server.model.http.HttpExchange;
+import server.model.http.HttpResponse;
+import server.model.enums.HttpStatus;
 import server.model.annotation.Controller;
-import server.model.annotation.Delete;
 import server.model.annotation.Get;
 import server.model.annotation.Post;
 import server.service.RequestContext;
@@ -19,34 +18,46 @@ public class TestController {
     private List<String> messages = new ArrayList<>();
 
     @Get("/")
-    public HttpResponse helloWorld(HttpExchange exchange) {
-        return exchange.getResponse().toBuilder()
+    public HttpResponse helloWorld() {
+        return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(HttpStatus.OK)
                 .content(Map.of("hello", "World"))
                 .build();
     }
 
     @Get("/messages")
-    public HttpResponse getMessages(HttpExchange exchange) {
-        return exchange.getResponse().toBuilder()
+    public HttpResponse getMessages() {
+        return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(HttpStatus.OK)
                 .content(messages)
                 .build();
     }
 
     @Post("/messages")
-    public HttpResponse createMessage(HttpExchange exchange) {
-        messages.add(exchange.getRequest().getContent());
-        return exchange.getResponse().toBuilder()
+    public HttpResponse createMessage() {
+        messages.add(getHttpExchange().getRequest().getContent());
+        return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(HttpStatus.OK)
                 .content(messages.size()-1)
                 .build();
     }
 
     @Get("/messages/{id}/{s}/{l}/{ll}/{f}")
-    public HttpResponse deleteMessage(HttpExchange exchange, int id, String s, Long l, long ll, Float f) {
-        return exchange.getResponse().toBuilder()
+    public HttpResponse deleteMessage(int id, String s, Long l, long ll, Float f) {
+        return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(HttpStatus.OK)
                 .build();
+    }
+
+    @Get("/test/{name}/test/{id}")
+    public HttpResponse deleteMessage(String name, int id) {
+        return getHttpExchange().getResponse().toBuilder()
+                .httpStatus(HttpStatus.OK)
+                .content("Hey das ist cool " + name)
+                .build();
+    }
+
+    private HttpExchange getHttpExchange() {
+        return RequestContext.requestContext.get();
     }
 }

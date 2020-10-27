@@ -1,41 +1,27 @@
-package server.service;
+package server.service.handler;
 
-import org.apache.commons.lang3.ArrayUtils;
 import server.controller.ErrorController;
-import server.model.HttpExchange;
-import server.model.HttpResponse;
+import server.model.exception.BadRequestException;
+import server.model.exception.InternalServerErrorException;
+import server.model.http.HttpExchange;
+import server.model.http.HttpResponse;
 import server.model.PathHandler;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RequestHandlers {
 
     private final List<PathHandler> handlers = new ArrayList<>();
-    private final List<Object> controllerObjects = new ArrayList();
-    private final HashMap<Class<?>, Function<String,Object>> converters = new HashMap();
+    private final List<Object> controllerObjects = new ArrayList<>();
+    private final RequestConverter requestConverter = new RequestConverter();
 
     public RequestHandlers() {
-        ReflectionControllerFinder.scan(this::addRequestHandler, this::addObject);
-        converters.put(int.class, Integer::parseInt);
-        converters.put(Integer.class, Integer::parseInt);
-        converters.put(String.class, o -> o);
-        converters.put(long.class, Long::parseLong);
-        converters.put(Long.class, Long::parseLong);
-        converters.put(Double.class, Double::parseDouble);
-        converters.put(Double.class, Double::parseDouble);
-        converters.put(Float.class, Float::parseFloat);
-        converters.put(float.class, Float::parseFloat);
-        converters.put(Boolean.class, Boolean::parseBoolean);
-        converters.put(boolean.class, Boolean::parseBoolean);
+        ReflectionControllerFinder.scanForControllers(this::addRequestHandler, this::addObject);
     }
 
     public HttpResponse getHandlerOrThrow(HttpExchange exchange) {
@@ -58,22 +44,23 @@ public class RequestHandlers {
                             }
                         }
                         if (clazzObject == null) {
-                            return null;
+                            throw new IllegalStateException("A method endpoint was called but there was no instance of the controller! " + controllerMethod.getName());
                         }
                         List<Object> pathVars = new ArrayList<>();
                         for (int i = 0; i < exchange.getRequest().getPathVariables().size(); i++) {
                             Class<?> clazz = handler.getPathVariableTypes().get(i);
-                            Object converted = converters.get(clazz).apply(exchange.getRequest().getPathVariables().get(i));
+                            // Get the right String converter for this type and convert the parsed Path Variable
+                            Object converted = requestConverter.getPathVariableConverter().get(clazz)
+                                    .apply(exchange.getRequest().getPathVariables().get(i));
                             pathVars.add(converted);
                         }
-
-                        return  (HttpResponse) controllerMethod.invoke(clazzObject, ArrayUtils.addAll(List.of(exchange).toArray(), pathVars.toArray()));
+                        return  (HttpResponse) controllerMethod.invoke(clazzObject, pathVars.toArray());
+                    } catch (IllegalAccessException | InvocationTargetException | IllegalStateException e) {
+                        throw new InternalServerErrorException(e);
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
+                        throw new BadRequestException();
                     }
                 })
-                .filter(Objects::nonNull)
                 .orElse(ErrorController.getNotFoundError());
     }
 
@@ -98,16 +85,5 @@ public class RequestHandlers {
             }
         }
         exchange.getRequest().setPathVariables(pathVariables);
-    }
-
-    public static String getRegex(String path) {
-        List<String> pathVariables = Arrays.stream(path.split("/"))
-                .filter(line -> line.startsWith("{"))
-                .collect(Collectors.toList());
-        String regex = "^" + path.replace("/", "\\/") + "$";
-        for (String variable : pathVariables) {
-            regex = regex.replace(variable, "[^/]*");
-        }
-        return regex;
     }
 }

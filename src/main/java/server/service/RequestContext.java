@@ -1,9 +1,8 @@
 package server.service;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import server.model.HttpExchange;
+import server.model.http.HttpExchange;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestContext {
