@@ -9,8 +9,10 @@ import lombok.Singular;
 import server.model.enums.HttpStatus;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -27,14 +29,27 @@ public class HttpResponse {
     @Override
     public String toString() {
         return String.format("%s %s %s\r\n", HTTP_VERSION, httpStatus.getHttpCode(), httpStatus.getHttpStatus()) +
-                getHeadersString() +
-                (Objects.nonNull(content) ? new Gson().toJson(content) : "");
+                getHeadersString() + getResponseBody();
     }
 
     private String getHeadersString() {
         return headers.entrySet().stream()
                 .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining("\r\n")) + "\r\n\r\n";
+    }
+
+    private String getResponseBody() {
+        if (content instanceof String) {
+            if (isNotBlank((String) content)) {
+                return (String) content;
+            } else {
+                return "";
+            }
+        } else if (nonNull(content)) {
+            return new Gson().toJson(content);
+        } else {
+            return "";
+        }
     }
 
     //TODO: add method for a default response object with defaults headers, ....

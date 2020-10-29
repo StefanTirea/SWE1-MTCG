@@ -22,6 +22,10 @@ public class HttpExchange {
         return request.getPath();
     }
 
+    public String getRequestContent() {
+        return request.getContent();
+    }
+
     public HttpMethod getRequestHttpMethod() {
         return request.getHttpMethod();
     }

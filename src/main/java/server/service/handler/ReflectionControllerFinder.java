@@ -2,6 +2,7 @@ package server.service.handler;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import server.model.enums.HttpMethod;
 import server.model.PathHandler;
@@ -21,6 +22,7 @@ public class ReflectionControllerFinder {
 
     private static final String PACKAGE_NAME = "server";
     private static final String ANNOTATION_PATH_METHOD_NAME = "value";
+    private static final String ANNOTATION_HTTP_METHOD_NAME = "method";
 
     /**
      * Scans for {@link Controller} annotations in the package to automatically register all REST API endpoints <br>
@@ -42,24 +44,26 @@ public class ReflectionControllerFinder {
                 })
                 .flatMap(clazz -> Arrays.stream(clazz.getDeclaredMethods()))
                 .forEach(method -> {
-                    String path = Arrays.stream(method.getDeclaredAnnotations())
+                    Pair<String, HttpMethod> requestHandler = Arrays.stream(method.getDeclaredAnnotations())
                             .filter(annotation -> nonNull(annotation.annotationType().getDeclaredAnnotation(RequestMethod.class)))
                             .findFirst()
                             .map(annotation -> {
                                 try {
-                                    return (String) annotation.annotationType().getDeclaredMethod(ANNOTATION_PATH_METHOD_NAME).invoke(annotation, (Object[]) null);
+                                    String value = (String) annotation.annotationType().getDeclaredMethod(ANNOTATION_PATH_METHOD_NAME).invoke(annotation, (Object[]) null);
+                                    HttpMethod httpMethod = (HttpMethod) annotation.annotationType().getDeclaredMethod(ANNOTATION_HTTP_METHOD_NAME).invoke(annotation, (Object[]) null);
+                                    return Pair.of(value, httpMethod);
                                 } catch (Exception e) {
-                                    throw new IllegalStateException(String.format("An error occurred when finding the method '%s' on %s and invoking it!",
-                                            ANNOTATION_PATH_METHOD_NAME, annotation.getClass().getName()), e);
+                                    throw new IllegalStateException(String.format("An error occurred when finding the method '%s' or '%s' on %s!",
+                                            ANNOTATION_PATH_METHOD_NAME, ANNOTATION_HTTP_METHOD_NAME, annotation.getClass().getName()), e);
                                 }
                             })
                             .orElse(null);
-                    if (nonNull(path)) {
+                    if (nonNull(requestHandler)) {
                         method.setAccessible(true);
                         PathHandler pathHandler = PathHandler.builder()
-                                .path(path)
-                                .regexPath(getRegex(path))
-                                .httpMethod(HttpMethod.GET)
+                                .path(requestHandler.getLeft())
+                                .regexPath(getRegex(requestHandler.getLeft()))
+                                .httpMethod(requestHandler.getRight())
                                 .method(method)
                                 .pathVariableTypes(Arrays.asList(method.getParameterTypes()))
                                 .build();
@@ -69,7 +73,7 @@ public class ReflectionControllerFinder {
     }
 
     /**
-     * Example: "/messages/{id}/user" returns "/messages/[^/]*&#47;user" <br>
+     * Example: "/messages/{id}/user" returns "/messages/([^/]+)&#47;user" <br>
      * Creates a regex for HTTP path to match it against an incoming request
      * @param path is a HTTP path
      * @return a regex String
@@ -78,9 +82,9 @@ public class ReflectionControllerFinder {
         List<String> pathVariables = Arrays.stream(path.split("/"))
                 .filter(line -> line.startsWith("{"))
                 .collect(Collectors.toList());
-        String regex = "^" + path.replace("/", "\\/") + "$";
+        String regex = "^" + path.replace("/", "\\/") + "\\/?$";
         for (String variable : pathVariables) {
-            regex = regex.replace(variable, "[^/]*");
+            regex = regex.replace(variable, "([^/]+)");
         }
         return regex;
     }
