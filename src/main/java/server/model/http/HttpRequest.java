@@ -26,6 +26,7 @@ public class HttpRequest {
     private HttpMethod httpMethod;
     private String path;
     private List<String> pathVariables;
+    private Map<String, Object> requestParameters;
     @Singular
     private Map<String, String> headers;
     private String content;
@@ -34,14 +35,14 @@ public class HttpRequest {
         if (request.isEmpty()) {
             return Optional.empty();
         }
-        List<String> startLine = Arrays.asList(request.get(0).split(" "));
+        List<String> startLine = Arrays.asList(request.get(0).split("\\?")[0].split(" "));
 
         HttpMethod httpMethod = HttpMethod.valueOf(startLine.get(0));
         String path = startLine.get(1);
 
-        if (path.length() != 1 && path.endsWith("/")) {
+        /*if (path.length() != 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
-        }
+        }*/
 
         Map<String, String> headers = request.stream()
                 .skip(1)

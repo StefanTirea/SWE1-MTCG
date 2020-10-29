@@ -1,18 +1,20 @@
 package server.service.handler;
 
 import server.controller.ErrorController;
+import server.model.PathHandler;
 import server.model.exception.BadRequestException;
 import server.model.exception.InternalServerErrorException;
 import server.model.http.HttpExchange;
 import server.model.http.HttpResponse;
-import server.model.PathHandler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public class RequestHandlers {
 
@@ -30,13 +32,11 @@ public class RequestHandlers {
                 .filter(handler -> handler.getHttpMethod().equals(exchange.getRequestHttpMethod()))
                 .findFirst();
 
-        pathHandler.ifPresent(handler -> extractPathVariables(handler.getPath(), exchange));
-
         return pathHandler
                 .map(handler -> {
                     try {
                         Method controllerMethod = handler.getMethod();
-                        Object  clazzObject = null;
+                        Object clazzObject = null;
                         for (Object object : controllerObjects) {
                             if (object.getClass().equals(controllerMethod.getDeclaringClass())) {
                                 clazzObject = object;
@@ -46,15 +46,7 @@ public class RequestHandlers {
                         if (clazzObject == null) {
                             throw new IllegalStateException("A method endpoint was called but there was no instance of the controller! " + controllerMethod.getName());
                         }
-                        List<Object> pathVars = new ArrayList<>();
-                        for (int i = 0; i < exchange.getRequest().getPathVariables().size(); i++) {
-                            Class<?> clazz = handler.getPathVariableTypes().get(i);
-                            // Get the right String converter for this type and convert the parsed Path Variable
-                            Object converted = requestConverter.getPathVariableConverter().get(clazz)
-                                    .apply(exchange.getRequest().getPathVariables().get(i));
-                            pathVars.add(converted);
-                        }
-                        return  (HttpResponse) controllerMethod.invoke(clazzObject, pathVars.toArray());
+                        return (HttpResponse) controllerMethod.invoke(clazzObject, getPathVariablesWithRegex(controllerMethod, exchange.getRequestPath(), handler.getRegexPath()));
                     } catch (IllegalAccessException | InvocationTargetException | IllegalStateException e) {
                         throw new InternalServerErrorException(e);
                     } catch (Exception e) {
@@ -74,16 +66,17 @@ public class RequestHandlers {
         }
     }
 
-    // TODO: https://stackoverflow.com/questions/1224934/java-extract-strings-with-regex
-    private void extractPathVariables(String controllerPath, HttpExchange exchange) {
-        String[] path = controllerPath.split("/");
-        String[] requestingPath = exchange.getRequestPath().split("/");
-        List<String> pathVariables = new ArrayList<>();
-        for (int i = 0; i < path.length; i++) {
-            if (path[i].startsWith("{")) {
-                pathVariables.add(requestingPath[i]);
-            }
+    private Object[] getPathVariablesWithRegex(Method method, String requestPath, String regexPath) {
+        Pattern pattern = Pattern.compile(regexPath);
+        Matcher matcher = pattern.matcher(requestPath);
+        if (matcher.matches()) {
+            return IntStream.range(1, method.getParameterTypes().length + 1)
+                    .mapToObj(i -> requestConverter.getPathVariableConverter()
+                            .get(method.getParameterTypes()[i - 1])
+                            .apply(matcher.group(i)))
+                    .toArray();
+        } else {
+            return new Object[0];
         }
-        exchange.getRequest().setPathVariables(pathVariables);
     }
 }

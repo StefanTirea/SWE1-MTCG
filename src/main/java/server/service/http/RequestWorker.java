@@ -70,7 +70,7 @@ public class RequestWorker implements Runnable {
             clientOutput.flush();
             clientOutput.close();
         } catch (IOException e) {
-            //log.info("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
+            // TODO: log.info("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
         }
     }
 
