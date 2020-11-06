@@ -40,10 +40,6 @@ public class HttpRequest {
         HttpMethod httpMethod = HttpMethod.valueOf(startLine.get(0));
         String path = startLine.get(1);
 
-        /*if (path.length() != 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }*/
-
         Map<String, String> headers = request.stream()
                 .skip(1)
                 .takeWhile(StringUtils::isNotBlank)
@@ -62,22 +58,20 @@ public class HttpRequest {
     }
 
     private static String readBodyContent(Map<String, String> headers, BufferedReader br) throws IOException {
-        long contentLength = getContentLength(headers);
+        int contentLength = getContentLength(headers);
         if (contentLength > 0) {
-            int read;
-            StringBuilder sb = new StringBuilder();
-            while ((read = br.read()) != -1) {
-                sb.append((char) read);
-                if (sb.length() == contentLength)
-                    break;
+            char[] body = new char[(int) contentLength];
+            int charsRead = br.read(body, 0, contentLength);
+            if (charsRead != contentLength) {
+                throw new IllegalStateException(String.format("Content-Length %d does not equals the read content length %d", contentLength, charsRead));
             }
-            return sb.toString();
+            return new String(body);
         } else {
             return "";
         }
     }
 
-    private static long getContentLength(Map<String, String> headers) {
-        return Long.parseLong(headers.getOrDefault("Content-Length", "0"));
+    private static int getContentLength(Map<String, String> headers) {
+        return Integer.parseInt(headers.getOrDefault("Content-Length", "0"));
     }
 }
