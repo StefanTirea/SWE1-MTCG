@@ -17,7 +17,7 @@ import java.util.Map;
 public class MessageController {
 
     private int counter;
-    private Map<Integer, String> messages = new HashMap<>();
+    private final Map<Integer, String> messages = new HashMap<>();
 
     @Get("/messages")
     public HttpResponse getMessages() {

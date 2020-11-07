@@ -1,10 +1,13 @@
 package server.controller;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import server.model.http.HttpResponse;
 import server.model.enums.HttpStatus;
 
 import java.util.Map;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ErrorController {
 
     public static HttpResponse getNotFoundError() {
