@@ -4,10 +4,10 @@ import server.controller.ErrorController;
 import server.model.PathHandler;
 import server.model.exception.BadRequestException;
 import server.model.exception.InternalServerErrorException;
+import server.model.exception.PathVariableConvertingException;
 import server.model.http.HttpExchange;
 import server.model.http.HttpResponse;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +36,7 @@ public class RequestHandlers {
                 .map(handler -> {
                     try {
                         Method controllerMethod = handler.getMethod();
+                        // find Controller class instance with the Method
                         Object clazzObject = null;
                         for (Object object : controllerObjects) {
                             if (object.getClass().equals(controllerMethod.getDeclaringClass())) {
@@ -46,11 +47,12 @@ public class RequestHandlers {
                         if (clazzObject == null) {
                             throw new IllegalStateException("A method endpoint was called but there was no instance of the controller! " + controllerMethod.getName());
                         }
+                        // call the Controller endpoint method with the instance itself and the required parameter
                         return (HttpResponse) controllerMethod.invoke(clazzObject, getPathVariablesWithRegex(controllerMethod, exchange.getRequestPath(), handler.getRegexPath()));
-                    } catch (IllegalAccessException | InvocationTargetException | IllegalStateException e) {
-                        throw new InternalServerErrorException(e);
+                    } catch (PathVariableConvertingException e) {
+                        throw new BadRequestException(e);
                     } catch (Exception e) {
-                        throw new BadRequestException();
+                        throw new InternalServerErrorException(e);
                     }
                 })
                 .orElse(ErrorController.getNotFoundError());
@@ -66,17 +68,21 @@ public class RequestHandlers {
         }
     }
 
-    private Object[] getPathVariablesWithRegex(Method method, String requestPath, String regexPath) {
-        Pattern pattern = Pattern.compile(regexPath);
-        Matcher matcher = pattern.matcher(requestPath);
-        if (matcher.matches()) {
-            return IntStream.range(1, method.getParameterTypes().length + 1)
-                    .mapToObj(i -> requestConverter.getPathVariableConverter()
-                            .get(method.getParameterTypes()[i - 1])
-                            .apply(matcher.group(i)))
-                    .toArray();
-        } else {
-            return new Object[0];
+    private Object[] getPathVariablesWithRegex(Method method, String requestPath, String regexPath) throws PathVariableConvertingException {
+        try {
+            Pattern pattern = Pattern.compile(regexPath);
+            Matcher matcher = pattern.matcher(requestPath);
+            if (matcher.matches()) {
+                return IntStream.range(1, method.getParameterTypes().length + 1)
+                        .mapToObj(i -> requestConverter.getPathVariableConverter()
+                                .get(method.getParameterTypes()[i - 1])
+                                .apply(matcher.group(i)))
+                        .toArray();
+            } else {
+                return new Object[0];
+            }
+        } catch (NumberFormatException e) {
+            throw new PathVariableConvertingException(e);
         }
     }
 }

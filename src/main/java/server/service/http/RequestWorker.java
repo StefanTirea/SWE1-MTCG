@@ -1,7 +1,7 @@
 package server.service.http;
 
 import lombok.RequiredArgsConstructor;
-import server.model.enums.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import server.model.exception.BadRequestException;
 import server.model.exception.InternalServerErrorException;
 import server.model.http.HttpExchange;
@@ -26,6 +26,7 @@ import static server.controller.ErrorController.getBadRequestError;
 import static server.controller.ErrorController.getInternalServerError;
 
 @RequiredArgsConstructor
+@Slf4j
 public class RequestWorker implements Runnable {
 
     private final Socket client;
@@ -41,24 +42,30 @@ public class RequestWorker implements Runnable {
                 lines.add(line);
             }
 
-            try {
-                HttpExchange exchange = HttpExchange.builder()
-                        .request(HttpRequest.build(lines, br).orElseThrow(BadRequestException::new))
-                        .response(HttpResponse.builder()
-                                .httpStatus(HttpStatus.OK)
-                                .header("ContentType", "application/json")
-                                .build())
-                        .user(Optional.empty()) // TODO: Extract User with Header
-                        .build();
-                RequestContext.requestContext.set(exchange);
-                sendResponse(requestHandlers.getHandlerOrThrow(exchange));
-            } catch (BadRequestException e) {
-                sendResponse(getBadRequestError(e.getLocalizedMessage()));
-            } catch (InternalServerErrorException e) {
-                sendInternalServerError(e);
-            }
+            processRequestAndRespond(lines, br);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Client Exception", e);
+        }
+    }
+
+    private void processRequestAndRespond(List<String> lines, BufferedReader br) throws IOException {
+        try {
+            HttpExchange exchange = HttpExchange.builder()
+                    .request(HttpRequest.build(lines, br).orElseThrow(BadRequestException::new))
+                    .response(HttpResponse.builder()
+                            .header("ContentType", "application/json")
+                            .build())
+                    .user(Optional.empty()) // TODO: Extract User with Header
+                    .build();
+            log.debug("{}", exchange.getRequest());
+            RequestContext.requestContext.set(exchange); // set HttpExchange object in static Thread Context
+            sendResponse(requestHandlers.getHandlerOrThrow(exchange));
+        } catch (BadRequestException e) {
+            log.debug("BadRequestException:", e);
+            sendResponse(getBadRequestError(e.getLocalizedMessage()));
+        } catch (InternalServerErrorException e) {
+            log.error("InternalServerError:", e);
+            sendInternalServerError(e);
         }
     }
 
@@ -70,7 +77,7 @@ public class RequestWorker implements Runnable {
             clientOutput.flush();
             clientOutput.close();
         } catch (IOException e) {
-            // TODO: log.info("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
+            log.info("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
         }
     }
 
@@ -80,7 +87,8 @@ public class RequestWorker implements Runnable {
             serverException.getCause().getCause().printStackTrace(pw);
             sendResponse(getInternalServerError(serverException.getLocalizedMessage(), sw.toString()));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not send InterServerError because of an other Exception!!!", e);
+            log.error("Previous InternalServerError: ", serverException);
         }
     }
 }
