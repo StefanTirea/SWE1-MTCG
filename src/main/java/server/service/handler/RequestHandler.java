@@ -1,12 +1,13 @@
 package server.service.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import server.controller.ErrorController;
-import server.model.PathHandler;
 import server.model.exception.BadRequestException;
 import server.model.exception.InternalServerErrorException;
 import server.model.exception.PathVariableConvertingException;
 import server.model.http.HttpExchange;
 import server.model.http.HttpResponse;
+import server.model.http.PathHandler;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -16,13 +17,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-public class RequestHandlers {
+@Slf4j
+public class RequestHandler {
 
     private final List<PathHandler> handlers = new ArrayList<>();
     private final List<Object> controllerObjects = new ArrayList<>();
     private final RequestConverter requestConverter = new RequestConverter();
 
-    public RequestHandlers() {
+    public RequestHandler() {
         ReflectionControllerFinder.scanForControllers(this::addRequestHandler, this::addObject);
     }
 
@@ -65,6 +67,9 @@ public class RequestHandlers {
     private void addRequestHandler(PathHandler pathHandler) {
         if (!handlers.contains(pathHandler)) {
             handlers.add(pathHandler);
+        } else {
+            log.error("PathHandler {} already exists in registered handlers! Duplicate of {}", pathHandler, handlers.get(handlers.indexOf(pathHandler)));
+            throw new IllegalStateException("Found PathHandler which !");
         }
     }
 

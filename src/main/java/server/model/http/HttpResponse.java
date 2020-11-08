@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -28,23 +27,20 @@ public class HttpResponse {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s\r\n", HTTP_VERSION, httpStatus.getHttpCode(), httpStatus.getHttpStatus()) +
+        return String.format("%s %s %s", HTTP_VERSION, httpStatus.getCode(), httpStatus.getName()) +
                 getHeadersString() + getResponseBody();
     }
 
     private String getHeadersString() {
-        return headers.entrySet().stream()
+        String headerString = headers.entrySet().stream()
                 .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining("\r\n")) + "\r\n\r\n";
+                .collect(Collectors.joining("\r\n"));
+        return (headerString.isBlank() ? "" : "\r\n") + headerString + "\r\n\r\n";
     }
 
     private String getResponseBody() {
         if (content instanceof String) {
-            if (isNotBlank((String) content)) {
-                return (String) content;
-            } else {
-                return "";
-            }
+            return (String) content;
         } else if (nonNull(content)) {
             return new Gson().toJson(content);
         } else {

@@ -4,10 +4,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
-import server.model.PathHandler;
 import server.model.annotation.Controller;
 import server.model.annotation.RequestMethod;
 import server.model.enums.HttpMethod;
+import server.model.http.PathHandler;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -101,7 +101,7 @@ public class ReflectionControllerFinder {
      * @param path is a HTTP path
      * @return a regex String
      */
-    private static String getRegex(String path) {
+    static String getRegex(String path) {
         List<String> pathVariables = Arrays.stream(path.split("/"))
                 .filter(line -> line.startsWith("{"))
                 .collect(Collectors.toList());

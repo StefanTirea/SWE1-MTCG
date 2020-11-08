@@ -8,14 +8,12 @@ import server.model.http.HttpExchange;
 import server.model.http.HttpRequest;
 import server.model.http.HttpResponse;
 import server.service.RequestContext;
-import server.service.handler.RequestHandlers;
+import server.service.handler.RequestHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +28,7 @@ import static server.controller.ErrorController.getInternalServerError;
 public class RequestWorker implements Runnable {
 
     private final Socket client;
-    private final RequestHandlers requestHandlers;
+    private final RequestHandler requestHandler;
 
     @Override
     public void run() {
@@ -59,13 +57,13 @@ public class RequestWorker implements Runnable {
                     .build();
             log.debug("{}", exchange.getRequest());
             RequestContext.requestContext.set(exchange); // set HttpExchange object in static Thread Context
-            sendResponse(requestHandlers.getHandlerOrThrow(exchange));
+            sendResponse(requestHandler.getHandlerOrThrow(exchange));
         } catch (BadRequestException e) {
             log.debug("BadRequestException:", e);
-            sendResponse(getBadRequestError(e.getLocalizedMessage()));
+            sendResponse(getBadRequestError(e));
         } catch (InternalServerErrorException e) {
             log.error("InternalServerError:", e);
-            sendInternalServerError(e);
+            sendResponse(getInternalServerError(e));
         }
     }
 
@@ -78,17 +76,6 @@ public class RequestWorker implements Runnable {
             clientOutput.close();
         } catch (IOException e) {
             log.info("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
-        }
-    }
-
-    private void sendInternalServerError(InternalServerErrorException serverException) {
-        try (StringWriter sw = new StringWriter();
-             PrintWriter pw = new PrintWriter(sw)) {
-            serverException.getCause().getCause().printStackTrace(pw);
-            sendResponse(getInternalServerError(serverException.getLocalizedMessage(), sw.toString()));
-        } catch (IOException e) {
-            log.error("Could not send InterServerError because of an other Exception!!!", e);
-            log.error("Previous InternalServerError: ", serverException);
         }
     }
 }

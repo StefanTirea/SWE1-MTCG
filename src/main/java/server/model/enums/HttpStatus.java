@@ -14,6 +14,6 @@ public enum HttpStatus {
     INTERNAL_SERVER_ERROR(500, "Internal Server Error")
     ;
 
-    private final int httpCode;
-    private final String httpStatus;
+    private final int code;
+    private final String name;
 }

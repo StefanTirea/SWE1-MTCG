@@ -1,4 +1,4 @@
-package mtcg.model;
+package mtcg.model.fixture;
 
 import mtcg.model.cards.MonsterCard;
 import mtcg.model.cards.SpellCardAttacking;

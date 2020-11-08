@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import server.model.enums.ContentType;
 import server.model.enums.HttpMethod;
 
 import java.io.BufferedReader;
@@ -23,6 +25,7 @@ import static java.util.stream.Collectors.toMap;
 @Setter
 @EqualsAndHashCode
 @ToString
+@Slf4j
 public class HttpRequest {
 
     private String version;
@@ -37,23 +40,28 @@ public class HttpRequest {
         if (request.isEmpty()) {
             return Optional.empty();
         }
-        List<String> startLine = Arrays.asList(request.get(0).split("\\?")[0].split(" "));
+        try {
+            List<String> startLine = Arrays.asList(request.get(0).split("\\?")[0].split(" "));
 
-        HttpMethod httpMethod = HttpMethod.valueOf(startLine.get(0));
-        String path = startLine.get(1);
-        String version = startLine.get(2);
+            HttpMethod httpMethod = HttpMethod.valueOf(startLine.get(0));
+            String path = startLine.get(1);
+            String version = startLine.get(2);
 
-        Map<String, String> headers = mapRequestHeaders(request);
+            Map<String, String> headers = mapRequestHeaders(request);
 
-        String content = readBodyContent(headers, br);
+            String content = readBodyContent(headers, br);
 
-        return Optional.of(HttpRequest.builder()
-                .version(version)
-                .httpMethod(httpMethod)
-                .path(path)
-                .headers(headers)
-                .content(content)
-                .build());
+            return Optional.of(HttpRequest.builder()
+                    .version(version)
+                    .httpMethod(httpMethod)
+                    .path(path)
+                    .headers(headers)
+                    .content(content)
+                    .build());
+        } catch (Exception e) {
+            log.debug("Exception while parsing request", e);
+            return Optional.empty();
+        }
     }
 
     private static Map<String, String> mapRequestHeaders(List<String> request) {
@@ -81,5 +89,9 @@ public class HttpRequest {
 
     private static int getContentLength(Map<String, String> headers) {
         return Integer.parseInt(headers.getOrDefault("Content-Length", "0"));
+    }
+
+    private ContentType getContentType() {
+        return ContentType.getContentTypeByMimeType(headers.getOrDefault("Content-Type", null));
     }
 }

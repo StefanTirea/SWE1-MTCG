@@ -1,14 +1,12 @@
 package mtcg.model.cards;
 
-import mtcg.model.enums.ElementType;
-import mtcg.model.enums.MonsterType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static mtcg.model.CardsFixture.monsterCard;
-import static mtcg.model.CardsFixture.spellCard;
+import static mtcg.model.fixture.CardsFixture.monsterCard;
+import static mtcg.model.fixture.CardsFixture.spellCard;
 import static mtcg.model.enums.Effectiveness.EFFECTIVE;
 import static mtcg.model.enums.Effectiveness.NOT_EFFECTIVE;
 import static mtcg.model.enums.Effectiveness.NO_EFFECT;
