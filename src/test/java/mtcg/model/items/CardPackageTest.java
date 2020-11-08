@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static mtcg.model.CardsFixture.cardPackage;
-import static mtcg.model.CardsFixture.monsterCard;
-import static mtcg.model.CardsFixture.spellCard;
+import static mtcg.model.fixture.CardsFixture.cardPackage;
+import static mtcg.model.fixture.CardsFixture.monsterCard;
+import static mtcg.model.fixture.CardsFixture.spellCard;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

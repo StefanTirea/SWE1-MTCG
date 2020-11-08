@@ -6,10 +6,6 @@ public class BadRequestException extends RuntimeException {
         super("Malformed Request. Could not parse the HTTP Request!");
     }
 
-    public BadRequestException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public BadRequestException(Throwable cause) {
         super(cause);
     }

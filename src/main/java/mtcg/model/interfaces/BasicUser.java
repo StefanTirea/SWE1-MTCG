@@ -4,8 +4,6 @@ import java.util.List;
 
 public interface BasicUser extends Authentication {
 
-    String getUsername();
-
     int getCoins();
 
     List<Item> getInventory();
