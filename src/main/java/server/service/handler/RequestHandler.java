@@ -1,5 +1,6 @@
 package server.service.handler;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import server.controller.ErrorController;
 import server.model.exception.BadRequestException;
@@ -10,12 +11,20 @@ import server.model.http.HttpResponse;
 import server.model.http.PathHandler;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+
+import static java.util.Objects.nonNull;
 
 @Slf4j
 public class RequestHandler {
@@ -50,7 +59,7 @@ public class RequestHandler {
                             throw new IllegalStateException("A method endpoint was called but there was no instance of the controller! " + controllerMethod.getName());
                         }
                         // call the Controller endpoint method with the instance itself and the required parameter
-                        return (HttpResponse) controllerMethod.invoke(clazzObject, getPathVariablesWithRegex(controllerMethod, exchange.getRequestPath(), handler.getRegexPath()));
+                        return (HttpResponse) controllerMethod.invoke(clazzObject, getControllerMethodParameters(handler, exchange.getRequestPath(), exchange.getRequestContent()));
                     } catch (PathVariableConvertingException e) {
                         throw new BadRequestException(e);
                     } catch (Exception e) {
@@ -73,19 +82,34 @@ public class RequestHandler {
         }
     }
 
-    private Object[] getPathVariablesWithRegex(Method method, String requestPath, String regexPath) throws PathVariableConvertingException {
+    private Object[] getControllerMethodParameters(PathHandler pathHandler, String requestPath, String body) throws PathVariableConvertingException {
+        Map<String, Object> parameters = convertPathVariables(pathHandler, requestPath);
+        if (nonNull(pathHandler.getRequestBodyType())) {
+            Object value = requestConverter.getPathVariableConverter()
+                    .getOrDefault(pathHandler.getRequestBodyType().getRight(), content -> new Gson().fromJson(content, pathHandler.getRequestBodyType().getRight()))
+                    .apply(body);
+            parameters.put(pathHandler.getRequestBodyType().getLeft(), value);
+        }
+        return Arrays.stream(pathHandler.getMethod().getParameters())
+                .map(Parameter::getName)
+                .map(parameters::get)
+                .toArray();
+    }
+
+    private Map<String, Object> convertPathVariables(PathHandler pathHandler, String requestPath) throws PathVariableConvertingException {
         try {
-            Pattern pattern = Pattern.compile(regexPath);
+            Pattern pattern = Pattern.compile(pathHandler.getRegexPath());
             Matcher matcher = pattern.matcher(requestPath);
+            Map<String, Object> pathVariables = new HashMap<>();
             if (matcher.matches()) {
-                return IntStream.range(1, method.getParameterTypes().length + 1)
-                        .mapToObj(i -> requestConverter.getPathVariableConverter()
-                                .get(method.getParameterTypes()[i - 1])
-                                .apply(matcher.group(i)))
-                        .toArray();
-            } else {
-                return new Object[0];
+                for (int i = 0; i < pathHandler.getPathVariableOrder().size(); i++) {
+                    String pathVariableName = pathHandler.getPathVariableOrder().get(i);
+                    Class<?> pathVariableType = pathHandler.getPathVariableTypes().get(pathVariableName);
+                    Object pathVariableValue = requestConverter.getPathVariableConverter().get(pathVariableType).apply(matcher.group(i + 1));
+                    pathVariables.put(pathVariableName, pathVariableValue);
+                }
             }
+            return pathVariables;
         } catch (NumberFormatException e) {
             throw new PathVariableConvertingException(e);
         }
