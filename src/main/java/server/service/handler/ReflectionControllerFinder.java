@@ -5,15 +5,21 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import server.model.annotation.Controller;
+import server.model.annotation.PathVariable;
+import server.model.annotation.RequestBody;
 import server.model.annotation.RequestMethod;
 import server.model.enums.HttpMethod;
 import server.model.http.PathHandler;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -90,8 +96,32 @@ public class ReflectionControllerFinder {
                 .regexPath(getRegex(requestHandler.getLeft()))
                 .httpMethod(requestHandler.getRight())
                 .method(method)
-                .pathVariableTypes(Arrays.asList(method.getParameterTypes()))
+                .pathVariableOrder(mapPathVariableOrder(requestHandler.getLeft()))
+                .pathVariableTypes(mapPathVariableTypes(method))
+                .requestBodyType(mapRequestBodyType(method))
                 .build();
+    }
+
+    private static List<String> mapPathVariableOrder(String path) {
+        Pattern pattern = Pattern.compile("\\{([A-Za-z0-9]+)\\}");
+        Matcher matcher = pattern.matcher(path);
+        return matcher.results()
+                .map(match -> match.group(1))
+                .collect(Collectors.toList());
+    }
+
+    private static Map<String, Class<?>> mapPathVariableTypes(Method method) {
+        return Arrays.stream(method.getParameters())
+                .filter(parameter -> parameter.isAnnotationPresent(PathVariable.class))
+                .collect(Collectors.toMap(Parameter::getName, Parameter::getType));
+    }
+
+    private static Pair<String, Class<?>> mapRequestBodyType(Method method) {
+        Map<String, Class<?>> types = Arrays.stream(method.getParameters())
+                .filter(parameter -> parameter.isAnnotationPresent(RequestBody.class))
+                .collect(Collectors.toMap(Parameter::getName, Parameter::getType));
+        assert types.size() <= 1;
+        return types.entrySet().stream().map(Pair::of).findFirst().orElse(null);
     }
 
     /**

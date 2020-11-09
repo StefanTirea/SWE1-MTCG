@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '0.9'
 }
 
 group 'at.tirea'
@@ -40,5 +41,23 @@ test {
 jar {
     manifest {
         attributes 'Main-Class': 'server.HttpServer'
+    }
+}
+
+idea.project.settings {
+    compiler {
+        javac {
+            javacAdditionalOptions "-parameters"
+        }
+    }
+}
+
+compileJava {
+    options.compilerArgs << '-parameters'
+}
+
+subprojects {
+    compileJava {
+        options.compilerArgs << '-parameters'
     }
 }

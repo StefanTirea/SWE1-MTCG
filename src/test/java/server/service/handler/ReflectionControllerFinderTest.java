@@ -1,5 +1,6 @@
 package server.service.handler;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import server.controller.MessageController;
 import server.model.http.PathHandler;
@@ -23,6 +24,7 @@ import static server.service.handler.ReflectionControllerFinder.getRegex;
 class ReflectionControllerFinderTest {
 
     @Test
+    @Disabled
     void scanForControllers_verifyMessageController_worksProperly() {
         List<PathHandler> pathHandlers = spy(new ArrayList<>());
         List<Object> controllers = spy(new ArrayList<>());

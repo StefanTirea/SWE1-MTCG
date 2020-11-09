@@ -3,6 +3,7 @@ package server.controller;
 import server.model.annotation.Controller;
 import server.model.annotation.Delete;
 import server.model.annotation.Get;
+import server.model.annotation.PathVariable;
 import server.model.annotation.Post;
 import server.model.annotation.Put;
 import server.model.enums.HttpStatus;
@@ -28,7 +29,7 @@ public class MessageController {
     }
 
     @Get("/messages/{id}")
-    public HttpResponse getMessage(int id) {
+    public HttpResponse getMessage(@PathVariable int id) {
         return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NO_CONTENT)
                 .content(messages.getOrDefault(id, ""))
@@ -45,7 +46,7 @@ public class MessageController {
     }
 
     @Put("/messages/{id}")
-    public HttpResponse updateMessage(int id) {
+    public HttpResponse updateMessage(@PathVariable int id) {
         messages.put(id, getHttpExchange().getRequestContent());
         return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NO_CONTENT)
@@ -54,7 +55,7 @@ public class MessageController {
     }
 
     @Delete("/messages/{id}")
-    public HttpResponse deleteMessage(int id) {
+    public HttpResponse deleteMessage(@PathVariable int id) {
         return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NO_CONTENT)
                 .content(messages.containsKey(id) ? messages.remove(id) : "")

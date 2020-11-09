@@ -3,10 +3,12 @@ package server.model.http;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.tuple.Pair;
 import server.model.enums.HttpMethod;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 @Builder
 @Getter
@@ -17,7 +19,10 @@ public class PathHandler {
     private final String regexPath;
     private final HttpMethod httpMethod;
     private final Method method;
-    private final List<Class<?>> pathVariableTypes;
+    private final List<String> pathVariableOrder; // chronological order of path variables in path
+    private final Map<String, Class<?>> pathVariableTypes; // path variable types of method parameters
+    private final Map<String, Class<?>> requestVariablesTypes;
+    private final Pair<String, Class<?>> requestBodyType;
 
     @Override
     public boolean equals(Object o) {
