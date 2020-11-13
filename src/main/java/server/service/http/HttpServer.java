@@ -12,14 +12,26 @@ public class HttpServer {
 
     private static final int PORT = 8080;
     private final RequestHandler requestHandler = new RequestHandler();
+    private ServerSocket server;
+    private boolean running;
 
     public void run() throws IOException {
-        try (ServerSocket server = new ServerSocket(PORT)) {
-            log.info("Socket HTTP Server started: http://localhost:{}", PORT);
-            while (true) {
-                Socket client = server.accept();
-                new Thread(new RequestWorker(client, requestHandler)).start();
-            }
+        running = true;
+        server = new ServerSocket(PORT);
+        log.info("Socket HTTP Server started: http://localhost:{}", PORT);
+        while (running) {
+            Socket client = server.accept();
+            new Thread(new RequestWorker(client, requestHandler)).start();
+        }
+    }
+
+    public void stop() {
+        running = false;
+        if (server != null) {
+            try {
+                server.close();
+                log.info("Server stopped");
+            } catch (IOException e) { }
         }
     }
 }

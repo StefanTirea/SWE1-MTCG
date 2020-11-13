@@ -6,6 +6,7 @@ import server.model.annotation.Get;
 import server.model.annotation.PathVariable;
 import server.model.annotation.Post;
 import server.model.annotation.Put;
+import server.model.annotation.RequestBody;
 import server.model.enums.HttpStatus;
 import server.model.http.HttpExchange;
 import server.model.http.HttpResponse;
@@ -31,25 +32,28 @@ public class MessageController {
     @Get("/messages/{id}")
     public HttpResponse getMessage(@PathVariable int id) {
         return getHttpExchange().getResponse().toBuilder()
-                .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NO_CONTENT)
+                .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NOT_FOUND)
                 .content(messages.getOrDefault(id, ""))
                 .build();
     }
 
     @Post("/messages")
-    public HttpResponse createMessage() {
-        messages.put(++counter, getHttpExchange().getRequest().getContent());
+    public HttpResponse createMessage(@RequestBody String message) {
+        int id = counter++;
+        messages.put(id, message);
         return getHttpExchange().getResponse().toBuilder()
                 .httpStatus(HttpStatus.OK)
-                .content(Map.of("id", counter))
+                .content(Map.of("id", id))
                 .build();
     }
 
     @Put("/messages/{id}")
-    public HttpResponse updateMessage(@PathVariable int id) {
-        messages.put(id, getHttpExchange().getRequestContent());
+    public HttpResponse updateMessage(@PathVariable int id, @RequestBody String message) {
+        if (messages.containsKey(id)) {
+            messages.put(id, message);
+        }
         return getHttpExchange().getResponse().toBuilder()
-                .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NO_CONTENT)
+                .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NOT_FOUND)
                 .content(messages.getOrDefault(id, ""))
                 .build();
     }
@@ -57,11 +61,13 @@ public class MessageController {
     @Delete("/messages/{id}")
     public HttpResponse deleteMessage(@PathVariable int id) {
         return getHttpExchange().getResponse().toBuilder()
-                .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NO_CONTENT)
+                .httpStatus(messages.containsKey(id) ? HttpStatus.OK : HttpStatus.NOT_FOUND)
                 .content(messages.containsKey(id) ? messages.remove(id) : "")
                 .build();
     }
 
+    // TODO: Inject Exchange when necessary (when required in controller parameter)
+    // TODO: Allow other types than HttpResponse in controller methods (filter chain required)
     private HttpExchange getHttpExchange() {
         return RequestContext.requestContext.get();
     }
