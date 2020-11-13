@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import server.model.enums.HttpStatus;
 import server.model.exception.BadRequestException;
 import server.model.exception.InternalServerErrorException;
+import server.model.exception.MethodNotAllowedException;
 import server.model.http.HttpResponse;
 
 import java.util.Map;
@@ -23,7 +24,14 @@ public class ErrorController {
     public static HttpResponse getBadRequestError(BadRequestException exception) {
         return HttpResponse.builder()
                 .httpStatus(HttpStatus.BAD_REQUEST)
-                .content(Map.of("message", exception.getLocalizedMessage()))
+                .content(mapExceptionCause(exception))
+                .build();
+    }
+
+    public static HttpResponse getMethodNotAllowedError(MethodNotAllowedException exception) {
+        return HttpResponse.builder()
+                .httpStatus(HttpStatus.METHOD_NOT_ALLOWED)
+                .content(mapExceptionCause(exception))
                 .build();
     }
 
@@ -32,5 +40,9 @@ public class ErrorController {
                 .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                 .content(Map.of("message", exception.getLocalizedMessage(), "exception", exception.getCause().getLocalizedMessage()))
                 .build();
+    }
+
+    private static Map<String, String> mapExceptionCause(RuntimeException exception) {
+        return Map.of("message", exception.getLocalizedMessage());
     }
 }

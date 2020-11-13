@@ -3,7 +3,9 @@ package server.service.http;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import server.model.exception.BadRequestException;
+import server.model.exception.HttpRequestParseException;
 import server.model.exception.InternalServerErrorException;
+import server.model.exception.MethodNotAllowedException;
 import server.model.http.HttpExchange;
 import server.model.http.HttpRequest;
 import server.model.http.HttpResponse;
@@ -22,6 +24,7 @@ import java.util.Optional;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static server.controller.ErrorController.getBadRequestError;
 import static server.controller.ErrorController.getInternalServerError;
+import static server.controller.ErrorController.getMethodNotAllowedError;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -49,7 +52,7 @@ public class RequestWorker implements Runnable {
     private void processRequestAndRespond(List<String> lines, BufferedReader br) throws IOException {
         try {
             HttpExchange exchange = HttpExchange.builder()
-                    .request(HttpRequest.build(lines, br).orElseThrow(BadRequestException::new))
+                    .request(HttpRequest.build(lines, br).orElseThrow(HttpRequestParseException::new))
                     .response(HttpResponse.builder()
                             .header("ContentType", "application/json")
                             .build())
@@ -58,9 +61,16 @@ public class RequestWorker implements Runnable {
             log.debug("{}", exchange.getRequest());
             RequestContext.requestContext.set(exchange); // set HttpExchange object in static Thread Context
             sendResponse(requestHandler.getHandlerOrThrow(exchange));
+        }  catch (HttpRequestParseException e) {
+            BadRequestException exception = new BadRequestException(e);
+            log.trace("BadRequestException:", exception);
+            sendResponse(getBadRequestError(exception));
         } catch (BadRequestException e) {
             log.debug("BadRequestException:", e);
             sendResponse(getBadRequestError(e));
+        } catch (MethodNotAllowedException e) {
+            log.debug("MethodNotAllowedException:", e);
+            sendResponse(getMethodNotAllowedError(e));
         } catch (InternalServerErrorException e) {
             log.error("InternalServerError:", e);
             sendResponse(getInternalServerError(e));

@@ -21,7 +21,7 @@ public class PathHandler {
     private final Method method;
     private final List<String> pathVariableOrder; // chronological order of path variables in path
     private final Map<String, Class<?>> pathVariableTypes; // path variable types of method parameters
-    private final Map<String, Class<?>> requestVariablesTypes;
+    private final Map<String, Class<?>> requestParameterTypes; // request parameter name & value type
     private final Pair<String, Class<?>> requestBodyType;
 
     @Override

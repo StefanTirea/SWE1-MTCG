@@ -83,7 +83,7 @@ public class HttpRequest {
             }
             return new String(body);
         } else {
-            return "";
+            return null;
         }
     }
 
