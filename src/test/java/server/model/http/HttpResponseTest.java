@@ -12,33 +12,33 @@ class HttpResponseTest {
 
     @Test
     void toString_httpResponseWithoutHeadersWithContent_properlyFormatted() {
-        assertThat(httpResponse(HttpStatus.OK, "hello").toString())
-                .isEqualTo("HTTP/1.1 200 OK\r\n\r\nhello");
+        assertThat(httpResponse(HttpStatus.OK, "hello"))
+                .hasToString("HTTP/1.1 200 OK\r\n\r\nhello");
     }
 
     @Test
     void toString_httpResponseWithoutHeadersAndWithoutContent_properlyFormatted() {
         assertThat(httpResponse(HttpStatus.OK, null).toString())
-                .isEqualTo("HTTP/1.1 200 OK\r\n\r\n");
+                .hasToString("HTTP/1.1 200 OK\r\n\r\n");
     }
 
     @Test
     void toString_httpResponseWithHeadersWithContent_properlyFormatted() {
         assertThat(httpResponse(HttpStatus.OK, "hello").toBuilder()
-                .header("test", "value").build().toString())
-                .isEqualTo("HTTP/1.1 200 OK\r\ntest: value\r\n\r\nhello");
+                .header("test", "value").build())
+                .hasToString("HTTP/1.1 200 OK\r\ntest: value\r\n\r\nhello");
     }
 
     @Test
     void toString_httpResponseWithHeadersWithoutContent_properlyFormatted() {
         assertThat(httpResponse(HttpStatus.OK, null).toBuilder()
-                .header("test", "value").build().toString())
-                .isEqualTo("HTTP/1.1 200 OK\r\ntest: value\r\n\r\n");
+                .header("test", "value").build())
+                .hasToString("HTTP/1.1 200 OK\r\ntest: value\r\n\r\n");
     }
 
     @Test
     void toString_httpResponseWithJsonContent_properlyFormatted() {
-        assertThat(httpResponse(HttpStatus.OK, List.of("hello", "hi")).toString())
-                .isEqualTo("HTTP/1.1 200 OK\r\n\r\n[\"hello\",\"hi\"]");
+        assertThat(httpResponse(HttpStatus.OK, List.of("hello", "hi")))
+                .hasToString("HTTP/1.1 200 OK\r\n\r\n[\"hello\",\"hi\"]");
     }
 }

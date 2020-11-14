@@ -1,15 +1,16 @@
 package server.service.handler;
 
-import org.junit.jupiter.api.Disabled;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import server.controller.MessageController;
 import server.model.http.PathHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -24,7 +25,6 @@ import static server.service.handler.ReflectionControllerFinder.getRegex;
 class ReflectionControllerFinderTest {
 
     @Test
-    @Disabled
     void scanForControllers_verifyMessageController_worksProperly() {
         List<PathHandler> pathHandlers = spy(new ArrayList<>());
         List<Object> controllers = spy(new ArrayList<>());
@@ -43,13 +43,14 @@ class ReflectionControllerFinderTest {
                 .flatExtracting(p -> p.getMethod().getName(),
                         PathHandler::getHttpMethod,
                         PathHandler::getPath,
-                        PathHandler::getPathVariableTypes)
+                        PathHandler::getPathVariableTypes,
+                        PathHandler::getRequestBodyType)
                 .containsExactlyInAnyOrder(
-                        "getMessage", GET, "/messages/{id}", List.of(int.class),
-                        "getMessages", GET, "/messages", emptyList(),
-                        "createMessage", POST, "/messages", emptyList(),
-                        "updateMessage", PUT, "/messages/{id}", List.of(int.class),
-                        "deleteMessage", DELETE, "/messages/{id}", List.of(int.class));
+                        "getMessage", GET, "/messages/{id}", Map.of("id", int.class), null,
+                        "getMessages", GET, "/messages", emptyMap(), null,
+                        "createMessage", POST, "/messages", emptyMap(), Pair.of("message", String.class),
+                        "updateMessage", PUT, "/messages/{id}", Map.of("id", int.class), Pair.of("message", String.class),
+                        "deleteMessage", DELETE, "/messages/{id}", Map.of("id", int.class), null);
 
         verify(controllers, atLeast(1)).add(any());
         verify(pathHandlers, atLeast(5)).add(any());

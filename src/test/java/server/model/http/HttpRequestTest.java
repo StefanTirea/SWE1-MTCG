@@ -28,6 +28,7 @@ class HttpRequestTest {
     @SneakyThrows
     void build_validLines_createRequest() {
         BufferedReader br = spy(new BufferedReader(new StringReader("hello")));
+
         assertThat(HttpRequest.build(List.of("POST /path HTTP/1.1", "Content-Length: 5", "", "hello"), br))
                 .contains(httpRequest(HttpMethod.POST, "/path", "hello"));
 
@@ -38,6 +39,7 @@ class HttpRequestTest {
     @SneakyThrows
     void build_emptyLines_empty() {
         BufferedReader br = spy(new BufferedReader(new StringReader("")));
+
         assertThat(HttpRequest.build(emptyList(), br)).isEmpty();
 
         verifyNoInteractions(br);
@@ -47,6 +49,7 @@ class HttpRequestTest {
     @SneakyThrows
     void build_notValidLines_empty() {
         BufferedReader br = spy(new BufferedReader(new StringReader("hello")));
+
         assertThat(HttpRequest.build(List.of("dsdsasd dadadsad", "dasdas", "", ""), br)).isEmpty();
 
         verifyNoInteractions(br);
@@ -56,6 +59,7 @@ class HttpRequestTest {
     @SneakyThrows
     void build_validLinesButContentLengthWrong_empty() {
         BufferedReader br = spy(new BufferedReader(new StringReader("hi")));
+
         assertThat(HttpRequest.build(List.of("POST /path HTTP/1.1", "Content-Length: 5", "", "hello"), br))
                 .isEmpty();
 

@@ -42,7 +42,6 @@ public class RequestWorker implements Runnable {
             while (isNotBlank(line = br.readLine())) {
                 lines.add(line);
             }
-
             processRequestAndRespond(lines, br);
         } catch (IOException e) {
             log.error("Client Exception", e);
@@ -54,25 +53,26 @@ public class RequestWorker implements Runnable {
             HttpExchange exchange = HttpExchange.builder()
                     .request(HttpRequest.build(lines, br).orElseThrow(HttpRequestParseException::new))
                     .response(HttpResponse.builder()
-                            .header("ContentType", "application/json")
+                            .header("Content-Type", "application/json")
                             .build())
                     .user(Optional.empty()) // TODO: Extract User with Header
                     .build();
             log.debug("{}", exchange.getRequest());
+
             RequestContext.requestContext.set(exchange); // set HttpExchange object in static Thread Context
             sendResponse(requestHandler.getHandlerOrThrow(exchange));
-        }  catch (HttpRequestParseException e) {
+        } catch (HttpRequestParseException e) {
             BadRequestException exception = new BadRequestException(e);
-            log.trace("BadRequestException:", exception);
+            log.trace("BadRequestException", exception);
             sendResponse(getBadRequestError(exception));
         } catch (BadRequestException e) {
-            log.debug("BadRequestException:", e);
+            log.debug("BadRequestException", e);
             sendResponse(getBadRequestError(e));
         } catch (MethodNotAllowedException e) {
-            log.debug("MethodNotAllowedException:", e);
+            log.debug("MethodNotAllowedException", e);
             sendResponse(getMethodNotAllowedError(e));
         } catch (InternalServerErrorException e) {
-            log.error("InternalServerError:", e);
+            log.error("InternalServerError", e);
             sendResponse(getInternalServerError(e));
         }
     }
@@ -85,7 +85,7 @@ public class RequestWorker implements Runnable {
             clientOutput.flush();
             clientOutput.close();
         } catch (IOException e) {
-            log.info("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
+            log.warn("The client closed the connection before response could be sent! ({})", client.getInetAddress().getHostAddress());
         }
     }
 }
