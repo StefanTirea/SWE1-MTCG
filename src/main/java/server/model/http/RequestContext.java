@@ -1,4 +1,4 @@
-package server.service;
+package server.model.http;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -19,8 +19,7 @@ public abstract class HttpServerITBase {
         new Thread(() -> {
             try {
                 httpServer.run();
-            } catch (Exception e) {
-            }
+            } catch (Exception e) { }
         }).start();
     }
 

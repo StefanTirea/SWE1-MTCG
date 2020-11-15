@@ -9,7 +9,7 @@ import server.model.exception.MethodNotAllowedException;
 import server.model.http.HttpExchange;
 import server.model.http.HttpRequest;
 import server.model.http.HttpResponse;
-import server.service.RequestContext;
+import server.model.http.RequestContext;
 import server.service.handler.RequestHandler;
 
 import java.io.BufferedReader;
