@@ -10,7 +10,7 @@ import server.model.annotation.RequestBody;
 import server.model.enums.HttpStatus;
 import server.model.http.HttpExchange;
 import server.model.http.HttpResponse;
-import server.service.RequestContext;
+import server.model.http.RequestContext;
 
 import java.util.HashMap;
 import java.util.Map;
