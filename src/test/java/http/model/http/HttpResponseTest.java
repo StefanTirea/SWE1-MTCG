@@ -11,34 +11,34 @@ import static http.fixture.HttpFixture.httpResponse;
 class HttpResponseTest {
 
     @Test
-    void toString_httpResponseWithoutHeadersWithContent_properlyFormatted() {
-        assertThat(httpResponse(HttpStatus.OK, "hello"))
-                .hasToString("HTTP/1.1 200 OK\r\n\r\nhello");
+    void getResponseString_httpResponseWithoutHeadersWithContent_properlyFormatted() {
+        assertThat(httpResponse(HttpStatus.OK, "hello").getResponseString())
+                .isEqualTo("HTTP/1.1 200 OK\r\n\r\nhello");
     }
 
     @Test
-    void toString_httpResponseWithoutHeadersAndWithoutContent_properlyFormatted() {
-        assertThat(httpResponse(HttpStatus.OK, null).toString())
-                .hasToString("HTTP/1.1 200 OK\r\n\r\n");
+    void getResponseString_httpResponseWithoutHeadersAndWithoutContent_properlyFormatted() {
+        assertThat(httpResponse(HttpStatus.OK, null).getResponseString())
+                .isEqualTo("HTTP/1.1 200 OK\r\n\r\n");
     }
 
     @Test
-    void toString_httpResponseWithHeadersWithContent_properlyFormatted() {
+    void getResponseString_httpResponseWithHeadersWithContent_properlyFormatted() {
         assertThat(httpResponse(HttpStatus.OK, "hello").toBuilder()
-                .header("test", "value").build())
-                .hasToString("HTTP/1.1 200 OK\r\ntest: value\r\n\r\nhello");
+                .header("test", "value").build().getResponseString())
+                .isEqualTo("HTTP/1.1 200 OK\r\ntest: value\r\n\r\nhello");
     }
 
     @Test
-    void toString_httpResponseWithHeadersWithoutContent_properlyFormatted() {
+    void getResponseString_httpResponseWithHeadersWithoutContent_properlyFormatted() {
         assertThat(httpResponse(HttpStatus.OK, null).toBuilder()
-                .header("test", "value").build())
-                .hasToString("HTTP/1.1 200 OK\r\ntest: value\r\n\r\n");
+                .header("test", "value").build().getResponseString())
+                .isEqualTo("HTTP/1.1 200 OK\r\ntest: value\r\n\r\n");
     }
 
     @Test
-    void toString_httpResponseWithJsonContent_properlyFormatted() {
-        assertThat(httpResponse(HttpStatus.OK, List.of("hello", "hi")))
-                .hasToString("HTTP/1.1 200 OK\r\n\r\n[\"hello\",\"hi\"]");
+    void getResponseString_httpResponseWithJsonContent_properlyFormatted() {
+        assertThat(httpResponse(HttpStatus.OK, List.of("hello", "hi")).getResponseString())
+                .isEqualTo("HTTP/1.1 200 OK\r\n\r\n[\"hello\",\"hi\"]");
     }
 }

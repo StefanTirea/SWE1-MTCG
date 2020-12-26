@@ -1,14 +1,18 @@
 package http.service.handler;
 
-import http.controller.ErrorController;
 import http.model.exception.BadRequestException;
+import http.model.exception.HttpException;
+import http.model.exception.HttpRequestParseException;
 import http.model.exception.InternalServerErrorException;
 import http.model.exception.MethodNotAllowedException;
 import http.model.exception.PathVariableConvertingException;
+import http.model.exception.UnauthorizedException;
 import http.model.http.HttpExchange;
 import http.model.http.HttpResponse;
 import http.model.http.PathHandler;
-import http.service.reflection.ReflectionControllerFinder;
+import http.model.http.RequestContext;
+import http.model.interfaces.Authentication;
+import http.service.reflection.ControllerFinder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -23,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static http.model.http.RequestContext.HTTP_EXCHANGE_CONTEXT;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -32,9 +37,10 @@ public class RequestHandler {
     private final List<PathHandler> handlers = new ArrayList<>();
     private final List<Object> controllerObjects = new ArrayList<>();
     private final RequestConverter requestConverter = new RequestConverter();
+    private FilterManager filterManager;
 
     public RequestHandler() {
-        ReflectionControllerFinder.scanForControllers(this::addRequestHandler, this::addObject);
+        ControllerFinder.scanForControllers(this::addRequestHandler, this::addObject, this::instantiateFilterManager);
     }
 
     public HttpResponse getHandlerOrThrow(HttpExchange exchange) {
@@ -56,16 +62,16 @@ public class RequestHandler {
                             throw new IllegalStateException("A method endpoint was called but there was no instance of the controller! " + controllerMethod.getName());
                         }
                         // call the Controller endpoint method with the instance itself and the required parameter
-                        return (HttpResponse) controllerMethod.invoke(clazzObject, getControllerMethodParameters(handler, exchange.getRequestPath(), exchange.getRequestContent()));
+                        return filterManager.handleRequest(handler, clazzObject, getControllerMethodParameters(handler, exchange.getRequestPath(), exchange.getRequestContent()));
                     } catch (PathVariableConvertingException e) {
                         throw new BadRequestException(e);
-                    } catch (BadRequestException e) {
+                    } catch (HttpException e) {
                         throw e;
                     } catch (Exception e) {
                         throw new InternalServerErrorException(e);
                     }
                 })
-                .orElse(ErrorController.getNotFoundError());
+                .orElse(ErrorHandler.getNotFoundError());
     }
 
     private Optional<PathHandler> getPathHandler(HttpExchange exchange) {
@@ -88,30 +94,23 @@ public class RequestHandler {
         return pathHandler;
     }
 
-    private void addObject(Object object) {
-        controllerObjects.add(object);
-    }
-
-    /**
-     * Adds the pathHandler if the path & httpMethod is not already registered
-     *
-     * @param pathHandler gets registered
-     * @throws IllegalStateException if a duplicate pathHandler (path & httpMethod same) exists
-     */
-    private void addRequestHandler(PathHandler pathHandler) {
-        if (!handlers.contains(pathHandler)) {
-            handlers.add(pathHandler);
-        } else {
-            log.error("PathHandler {} already exists in registered handlers! Duplicate of {}", pathHandler, handlers.get(handlers.indexOf(pathHandler)));
-            throw new IllegalStateException("Found PathHandler which !");
-        }
-    }
-
     private Object[] getControllerMethodParameters(PathHandler pathHandler, String requestPath, String body) throws PathVariableConvertingException {
         Map<String, Object> parameters = convertPathVariables(pathHandler, requestPath);
         if (nonNull(pathHandler.getRequestBodyType())) { // convert body if a RequestBody was expected
             parameters.put(pathHandler.getRequestBodyType().getLeft(), convertRequestBody(pathHandler, body));
         }
+        // TODO: Implement System to define injection in Global Config class
+        Arrays.stream(pathHandler.getMethod().getParameters())
+                .filter(parameter -> HttpExchange.class.equals(parameter.getType()))
+                .map(Parameter::getName)
+                .findFirst()
+                .ifPresent(name -> parameters.put(name, HTTP_EXCHANGE_CONTEXT.get()));
+
+        Arrays.stream(pathHandler.getMethod().getParameters())
+                .filter(parameter -> Authentication.class.equals(parameter.getType()))
+                .map(Parameter::getName)
+                .findFirst()
+                .ifPresent(name -> parameters.put(name, HTTP_EXCHANGE_CONTEXT.get().getUser()));
 
         return Arrays.stream(pathHandler.getMethod().getParameters())
                 .map(Parameter::getName)
@@ -143,5 +142,28 @@ public class RequestHandler {
         } catch (NumberFormatException e) {
             throw new PathVariableConvertingException(e);
         }
+    }
+
+    private void addObject(Object object) {
+        controllerObjects.add(object);
+    }
+
+    /**
+     * Adds the pathHandler if the path & httpMethod is not already registered
+     *
+     * @param pathHandler gets registered
+     * @throws IllegalStateException if a duplicate pathHandler (path & httpMethod same) exists
+     */
+    private void addRequestHandler(PathHandler pathHandler) {
+        if (!handlers.contains(pathHandler)) {
+            handlers.add(pathHandler);
+        } else {
+            log.error("PathHandler {} already exists in registered handlers! Duplicate of {}", pathHandler, handlers.get(handlers.indexOf(pathHandler)));
+            throw new IllegalStateException("Found PathHandler which !");
+        }
+    }
+
+    private void instantiateFilterManager(FilterManager filterManager) {
+        this.filterManager = filterManager;
     }
 }

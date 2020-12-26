@@ -1,6 +1,7 @@
 package http.service.reflection;
 
 import http.model.http.PathHandler;
+import http.service.handler.FilterManager;
 import mtcg.controller.MessageController;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,7 @@ import static http.model.enums.HttpMethod.DELETE;
 import static http.model.enums.HttpMethod.GET;
 import static http.model.enums.HttpMethod.POST;
 import static http.model.enums.HttpMethod.PUT;
-import static http.service.reflection.ReflectionControllerFinder.getRegex;
+import static http.service.reflection.ControllerFinder.getRegex;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,14 +23,15 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-class ReflectionControllerFinderTest {
+class ControllerFinderTest {
 
     @Test
     void scanForControllers_verifyMessageController_worksProperly() {
         List<PathHandler> pathHandlers = spy(new ArrayList<>());
         List<Object> controllers = spy(new ArrayList<>());
+        List<FilterManager> filterManagers = spy(new ArrayList<>());
 
-        ReflectionControllerFinder.scanForControllers(pathHandlers::add, controllers::add);
+        ControllerFinder.scanForControllers(pathHandlers::add, controllers::add, filterManagers::add);
         List<PathHandler> messagePathHandlers = pathHandlers.stream()
                 .filter(p -> p.getMethod().getDeclaringClass().equals(MessageController.class))
                 .collect(Collectors.toList());

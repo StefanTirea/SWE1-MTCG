@@ -1,7 +1,10 @@
 package http.service.reflection;
 
+import http.model.annotation.Secured;
+import http.service.handler.FilterManager;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import http.model.annotation.Controller;
@@ -22,10 +25,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static http.service.reflection.ComponentFinder.scanForComponents;
+import static http.service.reflection.FilterFinder.scanForFilters;
 import static java.util.Objects.nonNull;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ReflectionControllerFinder {
+public class ControllerFinder {
 
     private static final String PACKAGE_NAME = "";
     private static final String ANNOTATION_PATH_METHOD_NAME = "value";
@@ -38,14 +43,18 @@ public class ReflectionControllerFinder {
      * @param register                  is called when a {@link PathHandler} is registered
      * @param registerControllerObjects is called for each instantiated class annotated with {@link Controller}
      */
-    public static void scanForControllers(Consumer<PathHandler> register, Consumer<Object> registerControllerObjects) {
+    public static void scanForControllers(Consumer<PathHandler> register,
+                                          Consumer<Object> registerControllerObjects,
+                                          Consumer<FilterManager> registerFilterManager) {
         Reflections reflections = new Reflections(PACKAGE_NAME);
         Set<Class<?>> controllerClasses = reflections.getTypesAnnotatedWith(Controller.class);
-        Map<Class<?>, Object> objects = ReflectionComponentFinder.scanForComponents(PACKAGE_NAME);
+        Map<Class<?>, Object> componentObjects = scanForComponents(PACKAGE_NAME);
+
+        registerFilterManager.accept(scanForFilters(componentObjects));
 
         controllerClasses.forEach(clazz -> {
             try {
-                registerControllerObjects.accept(objects.get(clazz));
+                registerControllerObjects.accept(componentObjects.get(clazz));
             } catch (Exception e) {
                 throw new IllegalStateException(String.format("An error occurred when instantiating Controller class %s!", clazz.getName()), e);
             }
@@ -88,7 +97,7 @@ public class ReflectionControllerFinder {
      * Create an instance of {@link PathHandler} to be registered for the Http Server
      *
      * @param method         is the Controller method
-     * @param requestHandler is the return value of {@link ReflectionControllerFinder#mapPathAndHttpMethod(Method)}
+     * @param requestHandler is the return value of {@link ControllerFinder#mapPathAndHttpMethod(Method)}
      * @return a {@link PathHandler} with the {@link Method}, path and {@link HttpMethod}
      */
     private static PathHandler mapPathHandler(Method method, Pair<String, HttpMethod> requestHandler) {
@@ -100,7 +109,18 @@ public class ReflectionControllerFinder {
                 .pathVariableOrder(mapPathVariableOrder(requestHandler.getLeft()))
                 .pathVariableTypes(mapPathVariableTypes(method))
                 .requestBodyType(mapRequestBodyType(method))
+                .requiredRoles(mapRequiredRoles(method))
                 .build();
+    }
+
+    private static List<String> mapRequiredRoles(Method method) {
+        if (method.isAnnotationPresent(Secured.class)) {
+            return Arrays.asList(method.getDeclaredAnnotation(Secured.class).value());
+        } else if (method.getDeclaringClass().isAnnotationPresent(Secured.class)) {
+            return Arrays.asList(method.getDeclaringClass().getDeclaredAnnotation(Secured.class).value());
+        } else {
+            return null;
+        }
     }
 
     private static List<String> mapPathVariableOrder(String path) {

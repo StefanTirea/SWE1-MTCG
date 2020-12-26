@@ -1,16 +1,14 @@
 package http.service.http;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import http.model.exception.BadRequestException;
 import http.model.exception.HttpRequestParseException;
-import http.model.exception.InternalServerErrorException;
-import http.model.exception.MethodNotAllowedException;
 import http.model.http.HttpExchange;
 import http.model.http.HttpRequest;
 import http.model.http.HttpResponse;
 import http.model.http.RequestContext;
 import http.service.handler.RequestHandler;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,10 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static http.service.handler.ErrorHandler.handleError;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static http.controller.ErrorController.getBadRequestError;
-import static http.controller.ErrorController.getInternalServerError;
-import static http.controller.ErrorController.getMethodNotAllowedError;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -51,36 +47,25 @@ public class RequestWorker implements Runnable {
     private void processRequestAndRespond(List<String> lines, BufferedReader br) throws IOException {
         try {
             HttpExchange exchange = HttpExchange.builder()
-                    .request(HttpRequest.build(lines, br).orElseThrow(HttpRequestParseException::new))
+                    .request(HttpRequest.build(lines, br).orElseThrow(() -> new BadRequestException(new HttpRequestParseException())))
                     .response(HttpResponse.builder()
                             .header("Content-Type", "application/json")
                             .build())
-                    .user(Optional.empty()) // TODO: Extract User with Header
+                    .user(Optional.empty())
                     .build();
             log.debug("{}", exchange.getRequest());
 
-            RequestContext.requestContext.set(exchange); // set HttpExchange object in static Thread Context
+            RequestContext.HTTP_EXCHANGE_CONTEXT.set(exchange); // set HttpExchange object in static Thread Context
             sendResponse(requestHandler.getHandlerOrThrow(exchange));
-        } catch (HttpRequestParseException e) {
-            BadRequestException exception = new BadRequestException(e);
-            log.trace("BadRequestException", exception);
-            sendResponse(getBadRequestError(exception));
-        } catch (BadRequestException e) {
-            log.debug("BadRequestException", e);
-            sendResponse(getBadRequestError(e));
-        } catch (MethodNotAllowedException e) {
-            log.debug("MethodNotAllowedException", e);
-            sendResponse(getMethodNotAllowedError(e));
-        } catch (InternalServerErrorException e) {
-            log.error("InternalServerError", e);
-            sendResponse(getInternalServerError(e));
+        } catch (Exception e) {
+            sendResponse(handleError(e));
         }
     }
 
     private void sendResponse(HttpResponse httpResponse) {
         try {
             OutputStream clientOutput = client.getOutputStream();
-            String response = httpResponse.toString();
+            String response = httpResponse.getResponseString();
             clientOutput.write(response.getBytes());
             clientOutput.flush();
             clientOutput.close();

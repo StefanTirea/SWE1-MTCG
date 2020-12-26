@@ -64,6 +64,17 @@ public class HttpRequest {
         }
     }
 
+    public ContentType getContentType() {
+        return ContentType.getContentTypeByMimeType(headers.getOrDefault("Content-Type", null));
+    }
+
+    public String getHeaderBasicAuth() {
+        return Optional.ofNullable(headers.get("Authorization"))
+                .filter(value -> value.startsWith("Basic "))
+                .map(value -> value.substring(6))
+                .orElse("");
+    }
+
     private static Map<String, String> mapRequestHeaders(List<String> request) {
         return request.stream()
                 .skip(1)
@@ -89,9 +100,5 @@ public class HttpRequest {
 
     private static int getContentLength(Map<String, String> headers) {
         return Integer.parseInt(headers.getOrDefault("Content-Length", "0"));
-    }
-
-    private ContentType getContentType() {
-        return ContentType.getContentTypeByMimeType(headers.getOrDefault("Content-Type", null));
     }
 }

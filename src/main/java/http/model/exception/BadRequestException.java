@@ -1,12 +1,14 @@
 package http.model.exception;
 
-public class BadRequestException extends RuntimeException {
+import http.model.enums.HttpStatus;
+
+public class BadRequestException extends HttpException {
 
     public BadRequestException(String cause) {
-        super(cause);
+        super(cause, HttpStatus.BAD_REQUEST);
     }
 
     public BadRequestException(Throwable cause) {
-        super(cause);
+        super(cause, HttpStatus.BAD_REQUEST);
     }
 }

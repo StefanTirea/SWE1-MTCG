@@ -6,5 +6,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestContext {
 
-    public static final ThreadLocal<HttpExchange> requestContext = new ThreadLocal<>();
+    public static final ThreadLocal<HttpExchange> HTTP_EXCHANGE_CONTEXT = new ThreadLocal<>();
 }
