@@ -2,13 +2,16 @@ package mtcg.model.user;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 import mtcg.model.interfaces.BasicUser;
 import mtcg.model.interfaces.BattleCard;
 import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.Item;
 import mtcg.model.items.CardPackage;
 
+import javax.security.auth.Subject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,9 +25,9 @@ public class User implements BasicUser {
 
     private final List<Item> inventory = new ArrayList<>();
     private final List<List<BattleCard>> decks = new ArrayList<>();
+    @Singular
+    private final List<String> roles;
     private String username;
-    private String passwordHash;
-    private String token;
     private int coins;
 
     public List<Card> getStack() {
@@ -71,5 +74,21 @@ public class User implements BasicUser {
                 return false;
             }
         }
+    }
+
+    // TODO: Implement
+    @Override
+    public String getName() {
+        return username;
+    }
+
+    @Override
+    public boolean implies(Subject subject) {
+        return false;
+    }
+
+    @Override
+    public Collection<String> getRoles() {
+        return List.of("ADMIN");
     }
 }

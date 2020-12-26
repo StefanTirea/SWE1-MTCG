@@ -33,6 +33,13 @@ public abstract class HttpServerITBase {
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    protected HttpRequest.Builder request(String path, String token) {
+        return HttpRequest.newBuilder()
+                .header("Authorization", "Basic " + token)
+                .uri(URI.create("http://localhost:8080" + path))
+                .version(HttpClient.Version.HTTP_1_1);
+    }
+
     protected HttpRequest.Builder request(String path) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080" + path))

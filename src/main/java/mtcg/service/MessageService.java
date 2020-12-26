@@ -4,6 +4,7 @@ import http.model.annotation.Component;
 import lombok.Getter;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -17,8 +18,8 @@ public class MessageService {
         return messages.containsKey(id);
     }
 
-    public String getMessage(int id) {
-        return messages.getOrDefault(id, "");
+    public Optional<String> getMessage(int id) {
+        return Optional.ofNullable(messages.get(id));
     }
 
     public int createMessage(String message) {
@@ -26,18 +27,15 @@ public class MessageService {
         return counter - 1;
     }
 
-    public String updateMessage(int id, String message) {
+    public Optional<String> updateMessage(int id, String message) {
         if (messages.containsKey(id)) {
             messages.put(id, message);
-            return message;
+            return Optional.of(message);
         }
-        return "";
+        return Optional.empty();
     }
 
-    public String deleteMessage(int id) {
-        if (messages.containsKey(id)) {
-            return messages.remove(id);
-        }
-        return "";
+    public Optional<String> deleteMessage(int id) {
+        return Optional.ofNullable(messages.remove(id));
     }
 }

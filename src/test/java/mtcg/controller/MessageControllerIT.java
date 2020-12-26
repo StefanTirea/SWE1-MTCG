@@ -1,13 +1,14 @@
 package mtcg.controller;
 
-import org.junit.jupiter.api.Test;
 import http.service.http.HttpServerITBase;
+import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static http.model.enums.HttpStatus.CREATED;
 import static http.model.enums.HttpStatus.NOT_FOUND;
 import static http.model.enums.HttpStatus.OK;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageControllerIT extends HttpServerITBase {
 
@@ -23,6 +24,7 @@ class MessageControllerIT extends HttpServerITBase {
     void getMessages_twoMessages_OK() {
         createMessage("message");
         createMessage("message2");
+
         HttpResponse<String> response = getMessages();
 
         assertThat(response.body()).isEqualTo("{\"0\":\"message\",\"1\":\"message2\"}");
@@ -40,6 +42,7 @@ class MessageControllerIT extends HttpServerITBase {
     @Test
     void getMessage_messageAvailable_OK() {
         createMessage("message");
+
         HttpResponse<String> response = getMessage(0);
 
         assertThat(response.body()).isEqualTo("message");
@@ -54,13 +57,13 @@ class MessageControllerIT extends HttpServerITBase {
 
         assertThat(before.body()).isEqualTo("{}");
         assertThat(response.body()).isEqualTo("{\"id\":0}");
-        assertThat(response.statusCode()).isEqualTo(OK.getCode());
+        assertThat(response.statusCode()).isEqualTo(CREATED.getCode());
         assertThat(after.body()).isEqualTo("{\"0\":\"Hello World!\"}");
     }
 
     @Test
     void updateMessage_invalidId_NotFound() {
-        HttpResponse<String> response = sendRequest(request("/messages/0")
+        HttpResponse<String> response = sendRequest(request("/messages/0", "TEST")
                 .PUT(createContent("message"))
                 .build());
 
@@ -71,7 +74,8 @@ class MessageControllerIT extends HttpServerITBase {
     @Test
     void updateMessage_replaceMessage_OK() {
         createMessage("message");
-        HttpResponse<String> response = sendRequest(request("/messages/0")
+
+        HttpResponse<String> response = sendRequest(request("/messages/0", "TEST")
                 .PUT(createContent("new message"))
                 .build());
 
@@ -112,13 +116,13 @@ class MessageControllerIT extends HttpServerITBase {
     }
 
     private HttpResponse<String> createMessage(String content) {
-        return sendRequest(request("/messages")
+        return sendRequest(request("/messages", "ADMIN")
                 .POST(createContent(content))
                 .build());
     }
 
     private HttpResponse<String> deleteMessage(int id) {
-        return sendRequest(request("/messages/" + id)
+        return sendRequest(request("/messages/" + id, "ADMIN")
                 .DELETE()
                 .build());
     }

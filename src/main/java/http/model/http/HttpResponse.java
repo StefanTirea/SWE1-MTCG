@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
 import http.model.enums.HttpStatus;
+import lombok.ToString;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import static java.util.Objects.nonNull;
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode
+@ToString
 public class HttpResponse {
 
     private static final String HTTP_VERSION = "HTTP/1.1";
@@ -25,10 +27,15 @@ public class HttpResponse {
     private Map<String, String> headers;
     private Object content;
 
-    @Override
-    public String toString() {
+    public String getResponseString() {
         return String.format("%s %s %s", HTTP_VERSION, httpStatus.getCode(), httpStatus.getName()) +
                 getHeadersString() + getResponseBody();
+    }
+
+    public static HttpResponse noContent() {
+        return HttpResponse.builder()
+                .httpStatus(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     private String getHeadersString() {
@@ -47,6 +54,4 @@ public class HttpResponse {
             return "";
         }
     }
-
-    //TODO: add method for a default response object with defaults headers, ....
 }

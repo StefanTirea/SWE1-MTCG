@@ -23,6 +23,7 @@ public class PathHandler {
     private final Map<String, Class<?>> pathVariableTypes; // path variable types of method parameters
     private final Map<String, Class<?>> requestParameterTypes; // request parameter name & value type
     private final Pair<String, Class<?>> requestBodyType; // request body name & value type
+    private final List<String> requiredRoles; // null => anonymous, empty => signed in, 1..* => signed in + contains role
 
     @Override
     public boolean equals(Object o) {

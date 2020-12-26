@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ReflectionComponentFinder {
+public class ComponentFinder {
 
     @SneakyThrows
     public static Map<Class<?>, Object> scanForComponents(String packageName) {
@@ -26,6 +26,7 @@ public class ReflectionComponentFinder {
 
         while (componentClasses.hasNext()) {
             Class<?> clazz = componentClasses.next();
+            // remove from possible component class if no constructor is available
             if (clazz.getDeclaredConstructors().length == 0) {
                 componentClasses.remove();
                 size--;

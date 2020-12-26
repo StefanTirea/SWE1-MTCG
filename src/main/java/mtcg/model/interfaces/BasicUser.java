@@ -1,5 +1,7 @@
 package mtcg.model.interfaces;
 
+import http.model.interfaces.Authentication;
+
 import java.util.List;
 
 public interface BasicUser extends Authentication {

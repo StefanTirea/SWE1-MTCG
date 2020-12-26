@@ -1,10 +1,10 @@
 package http.model.http;
 
+import http.model.enums.HttpMethod;
+import http.model.interfaces.Authentication;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
-import mtcg.model.user.User;
-import http.model.enums.HttpMethod;
 
 import java.util.Optional;
 
@@ -16,7 +16,7 @@ public class HttpExchange {
     private HttpRequest request;
     @NonNull
     private HttpResponse response;
-    private Optional<User> user;
+    private Optional<Authentication> user;
 
     public String getRequestPath() {
         return request.getPath();
