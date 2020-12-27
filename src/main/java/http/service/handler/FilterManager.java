@@ -10,7 +10,9 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static http.model.http.RequestContext.HTTP_EXCHANGE_CONTEXT;
 import static org.apache.commons.collections4.CollectionUtils.containsAny;
@@ -24,14 +26,26 @@ public class FilterManager {
 
     public HttpResponse handleRequest(PathHandler pathHandler,
                                       Object classObject,
-                                      Object[] parameters) throws InvocationTargetException, IllegalAccessException {
+                                      Object[] parameters) throws IllegalAccessException {
         doFilterBefore();
         checkRoles(pathHandler.getRequiredRoles());
-        HttpResponse response = ResponseConverter.convertToHttpResponse(pathHandler.getMethod().invoke(classObject, parameters), pathHandler.getHttpMethod());
-        HTTP_EXCHANGE_CONTEXT.get().setResponse(response);
+        injectUser(pathHandler.getMethod(), parameters);
+        HttpResponse response;
+        try {
+            response = ResponseConverter.convertToHttpResponse(pathHandler.getMethod().invoke(classObject, parameters), pathHandler.getHttpMethod());
+            HTTP_EXCHANGE_CONTEXT.get().setResponse(response);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getCause());
+        }
         doFilterAfter();
-
         return response;
+    }
+
+    private void injectUser(Method method, Object[] parameters) {
+        IntStream.range(0, method.getParameterTypes().length)
+                .filter(i -> Authentication.class.isAssignableFrom(method.getParameterTypes()[i]))
+                .findFirst()
+                .ifPresent(i -> parameters[i] = HTTP_EXCHANGE_CONTEXT.get().getUser().orElseThrow());
     }
 
     private void checkRoles(List<String> requiredRoles) {

@@ -1,18 +1,18 @@
 package http.service.reflection;
 
-import http.model.annotation.Secured;
-import http.service.handler.FilterManager;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.reflections.Reflections;
 import http.model.annotation.Controller;
 import http.model.annotation.PathVariable;
 import http.model.annotation.RequestBody;
 import http.model.annotation.RequestMethod;
+import http.model.annotation.Secured;
 import http.model.enums.HttpMethod;
 import http.model.http.PathHandler;
+import http.service.handler.FilterManager;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.reflections.Reflections;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -30,6 +30,7 @@ import static http.service.reflection.FilterFinder.scanForFilters;
 import static java.util.Objects.nonNull;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class ControllerFinder {
 
     private static final String PACKAGE_NAME = "";
@@ -46,12 +47,14 @@ public class ControllerFinder {
     public static void scanForControllers(Consumer<PathHandler> register,
                                           Consumer<Object> registerControllerObjects,
                                           Consumer<FilterManager> registerFilterManager) {
+        Map<Class<?>, Object> componentObjects = scanForComponents(PACKAGE_NAME);
+        log.info("Controller Finder: Search for Controller classes");
         Reflections reflections = new Reflections(PACKAGE_NAME);
         Set<Class<?>> controllerClasses = reflections.getTypesAnnotatedWith(Controller.class);
-        Map<Class<?>, Object> componentObjects = scanForComponents(PACKAGE_NAME);
 
         registerFilterManager.accept(scanForFilters(componentObjects));
 
+        log.info("Controller Finder: Instantiating Controllers");
         controllerClasses.forEach(clazz -> {
             try {
                 registerControllerObjects.accept(componentObjects.get(clazz));
@@ -60,6 +63,7 @@ public class ControllerFinder {
             }
         });
 
+        log.info("Controller Finder: Populating Endpoint Information");
         controllerClasses.stream()
                 .flatMap(clazz -> Arrays.stream(clazz.getDeclaredMethods()))
                 .forEach(method -> {
@@ -68,6 +72,7 @@ public class ControllerFinder {
                         register.accept(mapPathHandler(method, requestHandler));
                     }
                 });
+        log.info("Controller Finder: DONE");
     }
 
     /**

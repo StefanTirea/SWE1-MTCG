@@ -1,6 +1,8 @@
 package mtcg.model.interfaces;
 
+import mtcg.model.enums.RuleResult;
+
 public interface Attackable {
 
-    Boolean attack(BattleCard otherCard);
+    RuleResult attack(BattleCard otherCard);
 }

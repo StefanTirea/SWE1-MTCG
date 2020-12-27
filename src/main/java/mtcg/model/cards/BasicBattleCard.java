@@ -7,10 +7,9 @@ import mtcg.model.enums.Effectiveness;
 import mtcg.model.enums.ElementType;
 import mtcg.model.enums.RuleResult;
 import mtcg.model.interfaces.BattleCard;
-import mtcg.service.CardRules;
+import mtcg.service.card.CardRules;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 @Data
 @AllArgsConstructor
@@ -34,26 +33,22 @@ public abstract class BasicBattleCard implements BattleCard {
     }
 
     @Override
-    public float getDamageWithEffectiveMultiplier(BattleCard card, ElementType enemyElementType) {
-        return card.getDamage() * card.getEffectiveMultiplier(enemyElementType).getPercentage();
+    public int getDamageWithEffectiveMultiplier(BattleCard card, ElementType enemyElementType) {
+        return (int) (card.getDamage() * card.getEffectiveMultiplier(enemyElementType).getPercentage());
     }
 
     @Override
-    public Boolean attack(BattleCard otherCard) {
-        List<RuleResult> results = new ArrayList<>();
+    public RuleResult attack(BattleCard otherCard) {
+        RuleResult result = null;
         if (this instanceof MonsterCard && otherCard instanceof MonsterCard) {
-            results.add(CardRules.checkRulesMonsterVsMonster((MonsterCard) this, (MonsterCard) otherCard));
-        }
-        if (this instanceof MonsterCard && otherCard instanceof SpellCardAttacking) {
-            results.add(CardRules.checkRulesMonsterVsSpell((MonsterCard) this, (SpellCardAttacking) otherCard, false));
+            result = CardRules.checkRulesMonsterVsMonster((MonsterCard) this, (MonsterCard) otherCard);
+        } else if (this instanceof MonsterCard && otherCard instanceof SpellCardAttacking) {
+            result = CardRules.checkRulesMonsterVsSpell((MonsterCard) this, (SpellCardAttacking) otherCard, false);
         } else if (this instanceof SpellCardAttacking && otherCard instanceof MonsterCard) {
-            results.add(CardRules.checkRulesMonsterVsSpell((MonsterCard) otherCard, (SpellCardAttacking) this, true));
+            result = CardRules.checkRulesMonsterVsSpell((MonsterCard) otherCard, (SpellCardAttacking) this, true);
         }
 
-        return results.stream()
-                .filter(result -> !result.equals(RuleResult.NOTHING))
-                .findAny()
-                .map(result -> result.equals(RuleResult.ATTACKER))
-                .orElse(null);
+        return Optional.ofNullable(result)
+                .orElse(RuleResult.NOTHING);
     }
 }

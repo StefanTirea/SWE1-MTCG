@@ -17,6 +17,7 @@ import static http.model.enums.HttpMethod.POST;
 import static http.model.enums.HttpMethod.PUT;
 import static http.service.reflection.ControllerFinder.getRegex;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.list;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -38,8 +39,7 @@ class ControllerFinderTest {
 
         assertThat(controllers)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .singleElement()
-                .isOfAnyClassIn(MessageController.class);
+                .hasAtLeastOneElementOfType(MessageController.class);
         assertThat(messagePathHandlers)
                 .hasSize(5)
                 .flatExtracting(p -> p.getMethod().getName(),

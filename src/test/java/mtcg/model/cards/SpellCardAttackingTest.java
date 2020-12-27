@@ -1,6 +1,7 @@
 package mtcg.model.cards;
 
 import mtcg.model.enums.Effectiveness;
+import mtcg.model.enums.RuleResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,15 +12,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.stream.Stream;
 
-import static mtcg.model.fixture.CardsFixture.monsterCard;
-import static mtcg.model.fixture.CardsFixture.spellCard;
 import static mtcg.model.enums.Effectiveness.EFFECTIVE;
 import static mtcg.model.enums.Effectiveness.NOT_EFFECTIVE;
 import static mtcg.model.enums.Effectiveness.NO_EFFECT;
+import static mtcg.model.enums.RuleResult.ATTACKER;
+import static mtcg.model.enums.RuleResult.DEFENDER;
+import static mtcg.model.enums.RuleResult.NOTHING;
+import static mtcg.model.fixture.CardsFixture.monsterCard;
+import static mtcg.model.fixture.CardsFixture.spellCard;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -35,9 +37,9 @@ class SpellCardAttackingTest {
 
     static Stream<Arguments> effectiveCombinations() {
         return Stream.of(
-                arguments(EFFECTIVE, true),
-                arguments(NO_EFFECT, false),
-                arguments(NOT_EFFECTIVE, false));
+                arguments(EFFECTIVE, ATTACKER),
+                arguments(NO_EFFECT, NOTHING),
+                arguments(NOT_EFFECTIVE, DEFENDER));
     }
 
     @BeforeEach
@@ -49,7 +51,7 @@ class SpellCardAttackingTest {
 
     @ParameterizedTest
     @MethodSource("effectiveCombinations")
-    void attack_effectivenessVsSpell(Effectiveness effectiveness, boolean result) {
+    void attack_effectivenessVsSpell(Effectiveness effectiveness, RuleResult result) {
         doReturn(effectiveness).when(currentSpellCard).getEffectiveMultiplier(any());
 
         assertEquals(currentSpellCard.attack(otherSpellCard), result);
@@ -62,9 +64,9 @@ class SpellCardAttackingTest {
         when(otherMonsterCard.getDamage()).thenReturn(5);
         doReturn(NO_EFFECT).when(otherMonsterCard).getEffectiveMultiplier(any());
 
-        assertFalse(currentSpellCard.attack(otherMonsterCard));
-        assertTrue(currentSpellCard.attack(otherMonsterCard));
-        assertTrue(currentSpellCard.attack(otherMonsterCard));
+        assertThat(currentSpellCard.attack(otherMonsterCard)).isEqualTo(NOTHING);
+        assertThat(currentSpellCard.attack(otherMonsterCard)).isEqualTo(ATTACKER);
+        assertThat(currentSpellCard.attack(otherMonsterCard)).isEqualTo(ATTACKER);
     }
 
     @Test
@@ -74,15 +76,8 @@ class SpellCardAttackingTest {
         when(otherMonsterCard.getDamage()).thenReturn(10);
         doReturn(NO_EFFECT).when(otherMonsterCard).getEffectiveMultiplier(any());
 
-        assertFalse(currentSpellCard.attack(otherMonsterCard));
-        assertFalse(currentSpellCard.attack(otherMonsterCard));
-        assertFalse(currentSpellCard.attack(otherMonsterCard));
-    }
-
-    @Test
-    void attack_vsUnknownType_throwException() {
-        assertThrows(UnsupportedOperationException.class,
-                () -> currentSpellCard.attack(null),
-                "The Card being attacked has an unknown type!");
+        assertThat(currentSpellCard.attack(otherMonsterCard)).isEqualTo(DEFENDER);
+        assertThat(currentSpellCard.attack(otherMonsterCard)).isEqualTo(DEFENDER);
+        assertThat(currentSpellCard.attack(otherMonsterCard)).isEqualTo(DEFENDER);
     }
 }

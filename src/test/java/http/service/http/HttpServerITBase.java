@@ -1,6 +1,7 @@
 package http.service.http;
 
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -8,10 +9,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Random;
 
 public abstract class HttpServerITBase {
 
-    private final HttpServer httpServer = new HttpServer();
+    private static final int PORT = new Random().nextInt(2000) + 9000;
+    private static final HttpServer httpServer = new HttpServer(PORT);
     private final HttpClient client = HttpClient.newHttpClient();
 
     @BeforeEach
@@ -23,6 +26,7 @@ public abstract class HttpServerITBase {
         }).start();
     }
 
+    @SneakyThrows
     @AfterEach
     void deconstruct() {
         httpServer.stop();
@@ -36,13 +40,13 @@ public abstract class HttpServerITBase {
     protected HttpRequest.Builder request(String path, String token) {
         return HttpRequest.newBuilder()
                 .header("Authorization", "Basic " + token)
-                .uri(URI.create("http://localhost:8080" + path))
+                .uri(URI.create("http://localhost:" + PORT + path))
                 .version(HttpClient.Version.HTTP_1_1);
     }
 
     protected HttpRequest.Builder request(String path) {
         return HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080" + path))
+                .uri(URI.create("http://localhost:" + PORT + path))
                 .version(HttpClient.Version.HTTP_1_1);
     }
 

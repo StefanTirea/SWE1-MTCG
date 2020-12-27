@@ -63,7 +63,7 @@ class MessageControllerIT extends HttpServerITBase {
 
     @Test
     void updateMessage_invalidId_NotFound() {
-        HttpResponse<String> response = sendRequest(request("/messages/0", "TEST")
+        HttpResponse<String> response = sendRequest(request("/messages/0")
                 .PUT(createContent("message"))
                 .build());
 
@@ -75,7 +75,7 @@ class MessageControllerIT extends HttpServerITBase {
     void updateMessage_replaceMessage_OK() {
         createMessage("message");
 
-        HttpResponse<String> response = sendRequest(request("/messages/0", "TEST")
+        HttpResponse<String> response = sendRequest(request("/messages/0")
                 .PUT(createContent("new message"))
                 .build());
 
@@ -116,13 +116,13 @@ class MessageControllerIT extends HttpServerITBase {
     }
 
     private HttpResponse<String> createMessage(String content) {
-        return sendRequest(request("/messages", "ADMIN")
+        return sendRequest(request("/messages")
                 .POST(createContent(content))
                 .build());
     }
 
     private HttpResponse<String> deleteMessage(int id) {
-        return sendRequest(request("/messages/" + id, "ADMIN")
+        return sendRequest(request("/messages/" + id)
                 .DELETE()
                 .build());
     }

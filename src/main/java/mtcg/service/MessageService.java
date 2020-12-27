@@ -14,10 +14,6 @@ public class MessageService {
     private int counter;
     private final Map<Integer, String> messages = new ConcurrentHashMap<>();
 
-    public boolean containsMessageId(int id) {
-        return messages.containsKey(id);
-    }
-
     public Optional<String> getMessage(int id) {
         return Optional.ofNullable(messages.get(id));
     }
