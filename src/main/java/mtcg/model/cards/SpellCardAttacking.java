@@ -4,12 +4,10 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import mtcg.model.enums.Effectiveness;
 import mtcg.model.enums.ElementType;
+import mtcg.model.enums.RuleResult;
 import mtcg.model.interfaces.Attackable;
 import mtcg.model.interfaces.BattleCard;
-
-import static java.util.Objects.nonNull;
 
 @Getter
 @ToString(callSuper = true)
@@ -17,20 +15,35 @@ import static java.util.Objects.nonNull;
 public class SpellCardAttacking extends BasicBattleCard implements Attackable {
 
     @Builder
-    public SpellCardAttacking(String name, int mana, float damage, ElementType elementType) {
+    public SpellCardAttacking(String name, int mana, int damage, ElementType elementType) {
         super(name, mana, Math.max(damage, 0), elementType);
     }
 
-    public Boolean attack(BattleCard otherCard) {
-        Boolean result = super.attack(otherCard);
-        if (nonNull(result)) {
+    public RuleResult attack(BattleCard otherCard) {
+        RuleResult result = super.attack(otherCard);
+        if (!result.equals(RuleResult.NOTHING)) {
             return result;
         }
 
         if (otherCard instanceof MonsterCard) {
-            return getDamageWithEffectiveMultiplier(this, otherCard.getElementType()) > getDamageWithEffectiveMultiplier(otherCard, getElementType());
+            int attack = getDamageWithEffectiveMultiplier(this, otherCard.getElementType());
+            int defender = getDamageWithEffectiveMultiplier(otherCard, getElementType());
+            if (attack == defender) {
+                return RuleResult.NOTHING;
+            } else if (attack > defender) {
+                return RuleResult.ATTACKER;
+            } else {
+                return RuleResult.DEFENDER;
+            }
         } else if (otherCard instanceof SpellCardAttacking) {
-            return getEffectiveMultiplier(otherCard.getElementType()).equals(Effectiveness.EFFECTIVE);
+            switch (getEffectiveMultiplier(otherCard.getElementType())) {
+                case EFFECTIVE:
+                    return RuleResult.ATTACKER;
+                case NOT_EFFECTIVE:
+                    return RuleResult.DEFENDER;
+                default:
+                    return RuleResult.NOTHING;
+            }
         } else {
             throw new UnsupportedOperationException("The Card being attacked has an unknown type!");
         }

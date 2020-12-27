@@ -1,5 +1,6 @@
-package mtcg.service;
+package mtcg.service.card;
 
+import http.model.annotation.Component;
 import lombok.Data;
 import mtcg.model.cards.MonsterCard;
 import mtcg.model.cards.SpellCardAttacking;
@@ -14,6 +15,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
+@Component
 @Data
 public class CardGenerator {
 

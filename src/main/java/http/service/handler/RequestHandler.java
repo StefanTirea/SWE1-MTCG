@@ -2,15 +2,12 @@ package http.service.handler;
 
 import http.model.exception.BadRequestException;
 import http.model.exception.HttpException;
-import http.model.exception.HttpRequestParseException;
 import http.model.exception.InternalServerErrorException;
 import http.model.exception.MethodNotAllowedException;
 import http.model.exception.PathVariableConvertingException;
-import http.model.exception.UnauthorizedException;
 import http.model.http.HttpExchange;
 import http.model.http.HttpResponse;
 import http.model.http.PathHandler;
-import http.model.http.RequestContext;
 import http.model.interfaces.Authentication;
 import http.service.reflection.ControllerFinder;
 import lombok.extern.slf4j.Slf4j;
@@ -107,10 +104,10 @@ public class RequestHandler {
                 .ifPresent(name -> parameters.put(name, HTTP_EXCHANGE_CONTEXT.get()));
 
         Arrays.stream(pathHandler.getMethod().getParameters())
-                .filter(parameter -> Authentication.class.equals(parameter.getType()))
+                .filter(parameter -> Authentication.class.isAssignableFrom(parameter.getType()))
                 .map(Parameter::getName)
                 .findFirst()
-                .ifPresent(name -> parameters.put(name, HTTP_EXCHANGE_CONTEXT.get().getUser()));
+                .ifPresent(name -> parameters.put(name, "{AUTHENTICATION}"));
 
         return Arrays.stream(pathHandler.getMethod().getParameters())
                 .map(Parameter::getName)

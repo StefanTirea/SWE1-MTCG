@@ -5,20 +5,21 @@ import mtcg.model.cards.SpellCardAttacking;
 import mtcg.model.enums.ElementType;
 import mtcg.model.enums.MonsterType;
 import mtcg.model.enums.RuleResult;
+import mtcg.service.card.CardRules;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CardRulesTest {
 
     @Test
     void ruleMonsterVsMonster() {
         MonsterCard attacker = MonsterCard.builder()
-                .monsterType(MonsterType.STEFAN)
+                .monsterType(MonsterType.GOBLIN)
                 .elementType(ElementType.NORMAL)
                 .build();
         MonsterCard defender = MonsterCard.builder()
-                .monsterType(MonsterType.JOHANNES)
+                .monsterType(MonsterType.DRAGON)
                 .elementType(ElementType.NORMAL)
                 .build();
         assertEquals(CardRules.checkRulesMonsterVsMonster(attacker, defender), RuleResult.DEFENDER);

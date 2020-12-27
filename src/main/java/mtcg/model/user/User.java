@@ -10,8 +10,6 @@ import mtcg.model.interfaces.Item;
 import mtcg.model.items.CardPackage;
 
 import javax.security.auth.Subject;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,8 +21,10 @@ import static java.util.stream.Collectors.toList;
 @Data
 public class User implements BasicUser {
 
-    private final List<Item> inventory = new ArrayList<>();
-    private final List<List<BattleCard>> decks = new ArrayList<>();
+    @Singular("inventory")
+    private final List<Item> inventory;
+    @Singular
+    private final List<List<BattleCard>> decks;
     @Singular
     private final List<String> roles;
     private String username;
@@ -76,7 +76,6 @@ public class User implements BasicUser {
         }
     }
 
-    // TODO: Implement
     @Override
     public String getName() {
         return username;
@@ -85,10 +84,5 @@ public class User implements BasicUser {
     @Override
     public boolean implies(Subject subject) {
         return false;
-    }
-
-    @Override
-    public Collection<String> getRoles() {
-        return List.of("ADMIN");
     }
 }

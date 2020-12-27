@@ -3,7 +3,9 @@ package http.service.reflection;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.reflections.Reflections;
 import http.model.annotation.Component;
 
@@ -14,10 +16,12 @@ import java.util.Map;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class ComponentFinder {
 
     @SneakyThrows
     public static Map<Class<?>, Object> scanForComponents(String packageName) {
+        log.info("Dependency Injection: Instantiating Components");
         Reflections reflections = new Reflections(packageName);
         Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(Component.class);
         int size = typesAnnotatedWith.size();
@@ -36,8 +40,9 @@ public class ComponentFinder {
             }
         }
 
+        int lastSize = instantiatedClasses.size();
+        componentClasses = typesAnnotatedWith.iterator();
         while (instantiatedClasses.size() != size) {
-            componentClasses = typesAnnotatedWith.iterator();
             while (componentClasses.hasNext()) {
                 Class<?> clazz = componentClasses.next();
                 boolean constructionPossible = CollectionUtils.containsAll(instantiatedClasses.keySet(), Arrays.asList(clazz.getDeclaredConstructors()[0].getParameterTypes()));
@@ -49,8 +54,14 @@ public class ComponentFinder {
                     componentClasses.remove();
                 }
             }
+            componentClasses = typesAnnotatedWith.iterator();
+            if (lastSize == instantiatedClasses.size()) {
+                log.error("Classes uninitialized {}", IteratorUtils.toList(componentClasses));
+                throw new IllegalStateException("Could not automatically initialize classes!");
+            }
+            lastSize = instantiatedClasses.size();
         }
-
+        log.info("Dependency Injection: DONE");
         return instantiatedClasses;
     }
 }

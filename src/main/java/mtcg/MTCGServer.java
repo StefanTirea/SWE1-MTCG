@@ -1,7 +1,7 @@
 package mtcg;
 
-import lombok.SneakyThrows;
 import http.service.http.HttpServer;
+import lombok.SneakyThrows;
 
 public class MTCGServer {
 

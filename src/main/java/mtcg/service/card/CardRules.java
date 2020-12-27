@@ -1,5 +1,7 @@
-package mtcg.service;
+package mtcg.service.card;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import mtcg.model.cards.MonsterCard;
 import mtcg.model.cards.SpellCardAttacking;
 import mtcg.model.enums.ElementType;
@@ -12,6 +14,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CardRules {
 
     /**
@@ -26,7 +29,9 @@ public class CardRules {
                 checkRulesMonsterVsMonster(attacker, defender, MonsterType.DRAGON, null, MonsterType.ELF, ElementType.FIRE))
                 .filter(result -> !result.equals(RuleResult.NOTHING))
                 .collect(Collectors.toList());
-        assert battleResult.size() <= 1 : String.format("The Monster vs Monster Rules does not return a clear result ATTACK: %s ; DEFENDER: %s", attacker, defender);
+        if (battleResult.size() > 1) {
+            throw new IllegalStateException(String.format("The Monster vs Monster Rules does not return a clear result ATTACK: %s ; DEFENDER: %s", attacker, defender));
+        }
         return battleResult.isEmpty() ? RuleResult.NOTHING : battleResult.get(0);
     }
 
@@ -43,7 +48,9 @@ public class CardRules {
                 ruleMonsterVsSpellWithMonsterSuperior(monster, spell, MonsterType.KRAKEN, null, null, !spellAttacking))
                 .filter(result -> !result.equals(RuleResult.NOTHING))
                 .collect(Collectors.toList());
-        assert battleResult.size() <= 1 : String.format("The Monster vs Spell Rules does not return a clear result ATTACK: %s ; DEFENDER: %s", monster, spell);
+        if (battleResult.size() > 1) {
+            throw new IllegalStateException(String.format("The Monster vs Spell Rules does not return a clear result ATTACK: %s ; DEFENDER: %s", monster, spell));
+        }
         return battleResult.isEmpty() ? RuleResult.NOTHING : battleResult.get(0);
     }
 

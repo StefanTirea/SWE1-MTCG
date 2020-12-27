@@ -9,6 +9,6 @@ public class UnauthorizedException extends HttpException {
     }
 
     public UnauthorizedException() {
-        super("No user was not authenticated", HttpStatus.UNAUTHORIZED);
+        super("No user was authenticated", HttpStatus.UNAUTHORIZED);
     }
 }

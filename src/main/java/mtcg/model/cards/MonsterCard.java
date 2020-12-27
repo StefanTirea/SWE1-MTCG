@@ -7,9 +7,8 @@ import lombok.NonNull;
 import lombok.ToString;
 import mtcg.model.enums.ElementType;
 import mtcg.model.enums.MonsterType;
+import mtcg.model.enums.RuleResult;
 import mtcg.model.interfaces.BattleCard;
-
-import static java.util.Objects.nonNull;
 
 @Getter
 @ToString(callSuper = true)
@@ -25,16 +24,33 @@ public class MonsterCard extends BasicBattleCard {
         this.monsterType = monsterType;
     }
 
-    public Boolean attack(BattleCard otherCard) {
-        Boolean result = super.attack(otherCard);
-        if (nonNull(result)) {
+    @Override
+    public RuleResult attack(BattleCard otherCard) {
+        RuleResult result = super.attack(otherCard);
+        if (!RuleResult.NOTHING.equals(result)) {
             return result;
         }
 
         if (otherCard instanceof MonsterCard) {
-            return getDamage() > otherCard.getDamage();
+            int attack = getDamage();
+            int defender = otherCard.getDamage();
+            if (attack == defender) {
+                return RuleResult.NOTHING;
+            } else if (attack > defender) {
+                return RuleResult.ATTACKER;
+            } else {
+                return RuleResult.DEFENDER;
+            }
         } else if (otherCard instanceof SpellCardAttacking) {
-            return getDamageWithEffectiveMultiplier(this, otherCard.getElementType()) > getDamageWithEffectiveMultiplier(otherCard, getElementType());
+            int attack = getDamageWithEffectiveMultiplier(this, otherCard.getElementType());
+            int defender = getDamageWithEffectiveMultiplier(otherCard, getElementType());
+            if (attack == defender) {
+                return RuleResult.NOTHING;
+            } else if (attack > defender) {
+                return RuleResult.ATTACKER;
+            } else {
+                return RuleResult.DEFENDER;
+            }
         } else {
             throw new UnsupportedOperationException("The Card being attacked has an unknown type!");
         }

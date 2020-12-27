@@ -13,5 +13,5 @@ public interface BattleCard extends Card, Attackable {
 
     Effectiveness getEffectiveMultiplier(ElementType otherElementType);
 
-    float getDamageWithEffectiveMultiplier(BattleCard card, ElementType enemyElementType);
+    int getDamageWithEffectiveMultiplier(BattleCard card, ElementType enemyElementType);
 }

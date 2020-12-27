@@ -7,7 +7,6 @@ import http.model.annotation.PathVariable;
 import http.model.annotation.Post;
 import http.model.annotation.Put;
 import http.model.annotation.RequestBody;
-import http.model.annotation.Secured;
 import lombok.RequiredArgsConstructor;
 import mtcg.service.MessageService;
 
@@ -31,19 +30,16 @@ public class MessageController {
     }
 
     @Post("/messages")
-    @Secured("ADMIN")
     public Map<String, Integer> createMessage(@RequestBody String message) {
         return Map.of("id", messageService.createMessage(message));
     }
 
     @Put("/messages/{id}")
-    @Secured
     public Optional<String> updateMessage(@PathVariable int id, @RequestBody String message) {
         return messageService.updateMessage(id, message);
     }
 
     @Delete("/messages/{id}")
-    @Secured({"ADMIN", "USER"})
     public Optional<String> deleteMessage(@PathVariable int id) {
         return messageService.deleteMessage(id);
     }

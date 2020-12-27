@@ -14,7 +14,7 @@ public class CardsFixture {
     public static MonsterCard monsterCard() {
         return MonsterCard.builder()
                 .name("Angry Chicken")
-                .damage(10f)
+                .damage(10)
                 .monsterType(MonsterType.CHICKEN)
                 .elementType(ElementType.FIRE)
                 .build();
@@ -23,7 +23,7 @@ public class CardsFixture {
     public static SpellCardAttacking spellCard() {
         return SpellCardAttacking.builder()
                 .name("Fire Spell")
-                .damage(10f)
+                .damage(10)
                 .elementType(ElementType.FIRE)
                 .build();
     }

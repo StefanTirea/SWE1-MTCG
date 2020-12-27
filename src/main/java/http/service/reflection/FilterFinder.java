@@ -7,6 +7,7 @@ import http.service.handler.FilterManager;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -17,12 +18,14 @@ import java.util.Map;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class FilterFinder {
 
     private static final String PACKAGE_NAME = "mtcg";
 
     @SneakyThrows
     public static FilterManager scanForFilters(Map<Class<?>, Object> componentsObjects) {
+        log.info("Filter Chain: Instantiating & Registering Filters");
         List<Class<? extends Filter>> preFilters = new ArrayList<>(new Reflections(PACKAGE_NAME).getSubTypesOf(PreFilter.class));
         List<Class<? extends Filter>> postFilters = new ArrayList<>(new Reflections(PACKAGE_NAME).getSubTypesOf(PostFilter.class));
         List<Filter> instantiatedPreFilters = new ArrayList<>();
@@ -31,6 +34,7 @@ public class FilterFinder {
         buildFilters(preFilters, componentsObjects, instantiatedPreFilters);
         buildFilters(postFilters, componentsObjects, instantiatedPostFilters);
 
+        log.info("Filter Chain: DONE");
         return FilterManager.builder()
                 .preFilters(instantiatedPreFilters)
                 .postFilters(instantiatedPostFilters)
