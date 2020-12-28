@@ -68,10 +68,11 @@ public class HttpRequest {
         return ContentType.getContentTypeByMimeType(headers.getOrDefault("Content-Type", null));
     }
 
-    public String getHeaderBasicAuth() {
+    public String getHeaderBearerToken() {
+        String bearer = "Bearer ";
         return Optional.ofNullable(headers.get("Authorization"))
-                .filter(value -> value.startsWith("Basic "))
-                .map(value -> value.substring(6))
+                .filter(value -> value.startsWith(bearer))
+                .map(value -> value.substring(bearer.length()))
                 .orElse("");
     }
 
