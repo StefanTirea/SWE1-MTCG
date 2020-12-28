@@ -9,12 +9,12 @@ import mtcg.service.AuthenticationService;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class BasicAuthenticationFilter implements PreFilter {
+public class BearerAuthenticationFilter implements PreFilter {
 
     private final AuthenticationService authenticationService;
 
     public void doFilter(HttpExchange exchange) {
-        Optional<Authentication> principal = authenticationService.authenticateUser(exchange.getRequest().getHeaderBasicAuth());
+        Optional<Authentication> principal = authenticationService.authenticateUser(exchange.getRequest().getHeaderBearerToken());
         exchange.setUser(principal);
     }
 }
