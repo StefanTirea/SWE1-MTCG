@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +52,7 @@ public abstract class BaseRepository<T> {
     }
 
     @SneakyThrows
-    public boolean insert(T entity) {
+    public Long insert(T entity) {
         List<Field> fields = Arrays.stream(type.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(Column.class))
                 .filter(field -> !field.getName().equals("id"))
@@ -69,21 +70,37 @@ public abstract class BaseRepository<T> {
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
-        PreparedStatement preparedStatement = connection.prepareStatement(query);
-        for (int i = 0; i < fields.size(); i++) {
-            Object input = type.getMethod("get" + fields.get(i).getName().toUpperCase().charAt(0)+fields.get(i).getName().substring(1)).invoke(entity);
-            if (input instanceof Object[]) {
-                input = connection.createArrayOf("BIGINT", (Object[]) input);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            for (int i = 0; i < fields.size(); i++) {
+                Object input = type.getMethod("get" + fields.get(i).getName().toUpperCase().charAt(0)+fields.get(i).getName().substring(1)).invoke(entity);
+                if (input instanceof Object[]) {
+                    input = connection.createArrayOf("BIGINT", (Object[]) input);
+                }
+                preparedStatement.setObject(i + 1, input);
             }
-            preparedStatement.setObject(i + 1, input);
+            try {
+                int affectedRows = preparedStatement.executeUpdate();
+                if (affectedRows == 0) {
+                    log.error("Could not insert row! query: {}", query);
+                    connectionPool.releaseConnection(connection);
+                    throw new IllegalStateException();
+                }
+                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        connectionPool.releaseConnection(connection);
+                        return generatedKeys.getLong(1);
+                    }
+                    else {
+                        log.error("Insert failed! No ID obtained with query {}", query);
+                        connectionPool.releaseConnection(connection);
+                        throw new IllegalStateException();
+                    }
+                }
+            } catch (PSQLException e) {
+                connectionPool.releaseConnection(connection);
+                throw new BadRequestException("Choose an other username!"); // TODO create new unique constraint exception
+            }
         }
-        try {
-            preparedStatement.execute();
-        } catch (PSQLException e) {
-            throw new BadRequestException("Choose an other username!"); // TODO create new unique constraint exception
-        }
-        connectionPool.releaseConnection(connection);
-        return true;
     }
 
     @SneakyThrows

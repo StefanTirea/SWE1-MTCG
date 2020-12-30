@@ -17,5 +17,7 @@ public class PackageEntity {
     @Column
     private final Long userId;
     @Column
+    private final String name;
+    @Column
     private final String description;
 }

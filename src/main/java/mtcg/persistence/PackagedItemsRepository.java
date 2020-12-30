@@ -24,4 +24,12 @@ public class PackagedItemsRepository extends BaseRepository<PackagedItemsEntity>
                 .map(PackagedItemsEntity::getCardId)
                 .collect(Collectors.toList()));
     }
+
+    public boolean insertCardInPackage(List<Long> cardIds, Long packageId) {
+        cardIds.forEach(cardId -> insert(PackagedItemsEntity.builder()
+                .cardId(cardId)
+                .packageId(packageId)
+                .build()));
+        return true;
+    }
 }

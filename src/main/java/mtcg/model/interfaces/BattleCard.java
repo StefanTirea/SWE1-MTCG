@@ -2,6 +2,7 @@ package mtcg.model.interfaces;
 
 import mtcg.model.enums.Effectiveness;
 import mtcg.model.enums.ElementType;
+import mtcg.model.enums.MonsterType;
 
 public interface BattleCard extends Card, Attackable {
 
@@ -10,6 +11,8 @@ public interface BattleCard extends Card, Attackable {
     int getDamage();
 
     ElementType getElementType();
+
+    MonsterType getMonsterType();
 
     int getMana();
 

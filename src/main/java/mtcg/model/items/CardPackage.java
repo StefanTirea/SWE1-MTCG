@@ -7,23 +7,23 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
+import mtcg.model.entity.CardEntity;
 import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.ItemContainer;
 
 import java.util.List;
 
 @Builder
+@Getter
 @ToString
 @EqualsAndHashCode
 public class CardPackage implements ItemContainer {
 
-    @Getter
     private final String name;
-    @Getter
     private final String description;
     @NonNull
     @JsonIgnore
-    private final List<Card> content;
+    private final List<? extends Card> content;
 
     public List<Card> open() {
         synchronized (content) {
