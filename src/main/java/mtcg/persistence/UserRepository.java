@@ -48,10 +48,11 @@ public class UserRepository extends BaseRepository<UserEntity> {
     }
 
     public boolean createUser(UserData userData) {
-        return insert(UserEntity.builder()
+        insert(UserEntity.builder()
                 .username(userData.getUsername())
                 .password(userData.getPassword())
                 .build());
+        return true;
     }
 
     public boolean updateUser(User user) {

@@ -4,11 +4,12 @@ import http.model.annotation.Component;
 import mtcg.model.cards.MonsterCard;
 import mtcg.model.cards.SpellCardAttacking;
 import mtcg.model.entity.CardEntity;
-import mtcg.model.entity.TokenEntity;
+import mtcg.model.enums.ElementType;
+import mtcg.model.enums.MonsterType;
 import mtcg.model.interfaces.BattleCard;
+import mtcg.model.interfaces.Item;
 import mtcg.persistence.base.BaseRepository;
 import mtcg.persistence.base.ConnectionPool;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,20 +33,40 @@ public class CardRepository extends BaseRepository<CardEntity> {
                 .collect(Collectors.toList());
     }
 
+    public List<Long> saveBattleCardWithoutUser(List<? extends Item> items) {
+        return saveBattleCardWithUser(items, null);
+    }
+
+    public List<Long> saveBattleCardWithUser(List<? extends Item> items, Long userId) {
+        return items.stream()
+                .filter(item -> item instanceof BattleCard)
+                .map(item -> (BattleCard) item)
+                .map(battleCard -> CardEntity.builder()
+                        .userId(userId)
+                        .name(battleCard.getName())
+                        .damage(battleCard.getDamage())
+                        .elementType(battleCard.getElementType())
+                        .monsterType(battleCard.getMonsterType())
+                        .build()
+                )
+                .map(this::insert)
+                .collect(Collectors.toList());
+    }
+
     private BattleCard convert(CardEntity cardEntity) {
         if (cardEntity.getMonsterType() != null) {
             return MonsterCard.builder()
                     .id(cardEntity.getId())
                     .name(cardEntity.getName())
-                    .elementType(cardEntity.getElementType())
-                    .monsterType(cardEntity.getMonsterType())
+                    .elementType(ElementType.valueOf(cardEntity.getElementType()))
+                    .monsterType(MonsterType.valueOf(cardEntity.getMonsterType()))
                     .damage(cardEntity.getDamage())
                     .build();
         } else {
             return SpellCardAttacking.builder()
                     .id(cardEntity.getId())
                     .name(cardEntity.getName())
-                    .elementType(cardEntity.getElementType())
+                    .elementType(ElementType.valueOf(cardEntity.getElementType()))
                     .damage(cardEntity.getDamage())
                     .build();
         }

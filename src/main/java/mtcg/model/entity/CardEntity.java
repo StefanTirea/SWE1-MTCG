@@ -29,4 +29,15 @@ public class CardEntity {
     @Column
     private final boolean locked;
 
+    public String getMonsterType() {
+        return monsterType.name();
+    }
+
+    public String getElementType() {
+        return elementType.name();
+    }
+
+    public boolean getLocked() {
+        return locked;
+    }
 }

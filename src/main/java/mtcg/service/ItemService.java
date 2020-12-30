@@ -21,9 +21,7 @@ public class ItemService {
     private final PackagedItemsRepository packagedItemsRepository;
 
     public List<Item> getInventoryByUser(Long userId) {
-        return ListUtils.union(cardRepository.getBattleCardsByUser(userId), packageRepository.getPackagesByUser(userId).stream()
-                .flatMap(packageEntity -> packagedItemsRepository.getItemsInPackage(packageEntity.getId()).stream())
-                .collect(Collectors.toList()));
+        return ListUtils.union(cardRepository.getBattleCardsByUser(userId), packageRepository.getPackagesByUser(userId));
     }
 
     public List<BattleCard> getDeck(List<Long> deck, List<Item> items) {

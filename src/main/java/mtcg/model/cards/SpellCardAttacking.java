@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import mtcg.model.enums.ElementType;
+import mtcg.model.enums.MonsterType;
 import mtcg.model.enums.RuleResult;
 import mtcg.model.interfaces.Attackable;
 import mtcg.model.interfaces.BattleCard;
@@ -47,5 +48,10 @@ public class SpellCardAttacking extends BasicBattleCard implements Attackable {
         } else {
             throw new UnsupportedOperationException("The Card being attacked has an unknown type!");
         }
+    }
+
+    @Override
+    public MonsterType getMonsterType() {
+        return null;
     }
 }

@@ -42,11 +42,15 @@ public final class ConnectionPool {
         if (connection.isClosed()) {
             log.warn("Connection should not be closed!");
         }
+        // TODO when exception rollback OR when sucessfull commmit! Maybe with threadlocal!
+        connection.commit();
         connectionPool.add(connection);
     }
 
     @SneakyThrows
     private Connection createConnection() {
-        return DriverManager.getConnection(databaseConfig.getConnectionString(), databaseConfig.getUsername(), databaseConfig.getPassword());
+        Connection connection = DriverManager.getConnection(databaseConfig.getConnectionString(), databaseConfig.getUsername(), databaseConfig.getPassword());
+        connection.setAutoCommit(false);
+        return connection;
     }
 }

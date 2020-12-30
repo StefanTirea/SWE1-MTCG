@@ -7,6 +7,7 @@ import http.model.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import mtcg.model.items.CardPackage;
 import mtcg.model.user.User;
+import mtcg.persistence.PackageRepository;
 import mtcg.persistence.UserRepository;
 import mtcg.service.card.CardGenerator;
 
@@ -16,6 +17,7 @@ import mtcg.service.card.CardGenerator;
 public class ShopController {
 
     private final UserRepository userRepository;
+    private final PackageRepository packageRepository;
     private final CardGenerator cardGenerator;
 
     @Post("/api/transactions/packages")
@@ -24,6 +26,7 @@ public class ShopController {
             CardPackage cardPackage = cardGenerator.generateCardPackage(5);
             user.addItem(cardPackage);
             userRepository.updateUser(user);
+            packageRepository.savePackage(cardPackage, user.getId());
             return cardPackage;
         } else {
             throw new BadRequestException("Not enough money! 5 coins required, you have " + user.getCoins());
