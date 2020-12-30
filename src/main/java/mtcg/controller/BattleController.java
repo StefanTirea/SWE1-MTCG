@@ -17,8 +17,8 @@ public class BattleController {
 
     @Get("/api/battles")
     public BattleReport searchBattle(User user) {
-        if (user.getDeck().size() <= 3) {
-            throw new IllegalStateException("Deck size must be 5");
+        if (user.getDeck().size() == 4) {
+            throw new IllegalStateException("Deck size must be 4");
         }
         return matchmakingService.searchBattle(user);
     }
