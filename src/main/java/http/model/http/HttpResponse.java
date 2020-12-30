@@ -1,12 +1,13 @@
 package http.model.http;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import http.model.enums.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
-import http.model.enums.HttpStatus;
+import lombok.SneakyThrows;
 import lombok.ToString;
 
 import java.util.Map;
@@ -27,15 +28,15 @@ public class HttpResponse {
     private Map<String, String> headers;
     private Object content;
 
-    public String getResponseString() {
-        return String.format("%s %s %s", HTTP_VERSION, httpStatus.getCode(), httpStatus.getName()) +
-                getHeadersString() + getResponseBody();
-    }
-
     public static HttpResponse noContent() {
         return HttpResponse.builder()
                 .httpStatus(HttpStatus.NO_CONTENT)
                 .build();
+    }
+
+    public String getResponseString() {
+        return String.format("%s %s %s", HTTP_VERSION, httpStatus.getCode(), httpStatus.getName()) +
+                getHeadersString() + getResponseBody();
     }
 
     private String getHeadersString() {
@@ -45,11 +46,12 @@ public class HttpResponse {
         return (headerString.isBlank() ? "" : "\r\n") + headerString + "\r\n\r\n";
     }
 
+    @SneakyThrows
     private String getResponseBody() {
         if (content instanceof String) {
             return (String) content;
         } else if (nonNull(content)) {
-            return new Gson().toJson(content);
+            return new ObjectMapper().writeValueAsString(content);
         } else {
             return "";
         }

@@ -1,0 +1,22 @@
+version: '3.1'
+
+services:
+
+  postgres-mtcg:
+    image: postgres:13.1-alpine
+    container_name: postgres-mtcg
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PW}
+      POSTGRES_DB: mtcg
+    volumes:
+      - mtcg:/var/lib/postgresql/data
+
+#  pg-admin:
+#    image: dpage/pgadmin4:2020-12-16-1
+
+volumes:
+  mtcg:

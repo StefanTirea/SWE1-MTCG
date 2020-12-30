@@ -150,4 +150,5 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
-# End of https://www.toptal.com/developers/gitignore/api/intellij,java,gradle
+### Docker ###
+docker/.env

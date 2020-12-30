@@ -5,5 +5,7 @@ import java.util.Collection;
 
 public interface Authentication extends Principal {
 
+    Long getId();
+
     Collection<String> getRoles();
 }

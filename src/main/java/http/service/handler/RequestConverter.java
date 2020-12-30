@@ -1,7 +1,8 @@
 package http.service.handler;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.SneakyThrows;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,14 +11,14 @@ import java.util.function.Function;
 @Getter
 public class RequestConverter {
 
-    private final Map<Class<?>, Function<String,Object>> stringToObjectConverter = new HashMap<>();
+    private final Map<Class<?>, Function<String, Object>> stringToObjectConverter = new HashMap<>();
 
     public RequestConverter() {
         getPrimitiveTypeConverters();
     }
 
     public Object convertToObject(Class<?> clazz, String content) {
-        return stringToObjectConverter.getOrDefault(clazz, s -> new Gson().fromJson(content, clazz))
+        return stringToObjectConverter.getOrDefault(clazz, s -> jsonToObject(clazz, content))
                 .apply(content);
     }
 
@@ -37,5 +38,10 @@ public class RequestConverter {
         stringToObjectConverter.put(float.class, Float::parseFloat);
         stringToObjectConverter.put(Boolean.class, Boolean::parseBoolean);
         stringToObjectConverter.put(boolean.class, Boolean::parseBoolean);
+    }
+
+    @SneakyThrows
+    private Object jsonToObject(Class<?> clazz, String content) {
+        return new ObjectMapper().readValue(content, clazz);
     }
 }

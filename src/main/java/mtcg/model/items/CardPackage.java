@@ -1,5 +1,7 @@
 package mtcg.model.items;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -20,6 +22,7 @@ public class CardPackage implements ItemContainer {
     @Getter
     private final String description;
     @NonNull
+    @JsonIgnore
     private final List<Card> content;
 
     public List<Card> open() {
