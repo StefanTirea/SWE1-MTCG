@@ -45,7 +45,7 @@ class ErrorHandlerTest {
         assertThat(ErrorHandler.handleError(new InternalServerErrorException(new IllegalArgumentException("Illegal error"))))
                 .isEqualTo(HttpResponse.builder()
                         .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .content(Map.of("message", "An unexpected exception happened!", "exception", "Illegal error"))
+                        .content(Map.of("message", "An error happened!", "exception", "Illegal error"))
                         .build());
     }
 
@@ -63,7 +63,7 @@ class ErrorHandlerTest {
         assertThat(ErrorHandler.handleError(new IllegalStateException()))
                 .isEqualTo(HttpResponse.builder()
                         .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .content(Map.of("message", "An unexpected exception happened!", "exception", "java.lang.IllegalStateException"))
+                        .content(Map.of("message", "An error happened!", "exception", "java.lang.IllegalStateException"))
                         .build());
     }
 }

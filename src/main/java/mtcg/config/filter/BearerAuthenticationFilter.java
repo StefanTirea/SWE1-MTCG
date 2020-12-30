@@ -1,4 +1,4 @@
-package mtcg.config.filters;
+package mtcg.config.filter;
 
 import http.model.http.HttpExchange;
 import http.model.interfaces.Authentication;

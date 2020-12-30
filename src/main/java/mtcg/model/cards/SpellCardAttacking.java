@@ -15,8 +15,8 @@ import mtcg.model.interfaces.BattleCard;
 public class SpellCardAttacking extends BasicBattleCard implements Attackable {
 
     @Builder
-    public SpellCardAttacking(String name, int mana, int damage, ElementType elementType) {
-        super(name, mana, Math.max(damage, 0), elementType);
+    public SpellCardAttacking(Long id, String name, int mana, int damage, ElementType elementType) {
+        super(id, name, mana, Math.max(damage, 0), elementType);
     }
 
     public RuleResult attack(BattleCard otherCard) {

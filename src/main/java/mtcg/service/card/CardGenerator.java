@@ -41,12 +41,12 @@ public class CardGenerator {
                 .build();
     }
 
-    public CardPackage generateCardPackage() {
-        int monsterCardsCount = ThreadLocalRandom.current().nextInt(4);
-        int spellCardsCount = 4 - monsterCardsCount;
+    public CardPackage generateCardPackage(int cardCount) {
+        int monsterCardsCount = ThreadLocalRandom.current().nextInt(cardCount + 1);
+        int spellCardsCount = cardCount - monsterCardsCount;
         return CardPackage.builder()
-                .name(getRandomMonsterName(getRandomMonsterType()) + " Mistery Package")
-                .description("This is a Card Package with 4 random Cards!")
+                .name(getRandomMonsterName(getRandomMonsterType()) + " Mystery Package")
+                .description(String.format("This is a Card Package with %d random Cards!", cardCount))
                 .content(getRandomCards(monsterCardsCount, spellCardsCount))
                 .build();
     }

@@ -15,6 +15,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public abstract class BasicBattleCard implements BattleCard {
 
+    private final Long id;
     private final String name;
     private final int mana;
     private final int damage;

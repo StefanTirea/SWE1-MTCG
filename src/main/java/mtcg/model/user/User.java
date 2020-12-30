@@ -14,34 +14,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 @Builder
 @Data
 public class User implements BasicUser {
 
-    @Singular("inventory")
-    private final List<Item> inventory;
-    @Singular
-    private final List<List<BattleCard>> decks;
+    private final Long id;
+    private final String username;
     @Singular
     private final List<String> roles;
-    private String username;
+    private final List<Item> inventory;
+    private List<BattleCard> deck;
     private int coins;
+    private int elo;
+    private int gamesPlayed;
+    private int gamesWon;
 
     public List<Card> getStack() {
         return inventory.stream()
                 .filter(Card.class::isInstance)
                 .map(Card.class::cast)
                 .collect(toList());
-    }
-
-    public List<BattleCard> getDeck() {
-        if (decks.isEmpty()) {
-            return emptyList();
-        }
-        return decks.get(0);
     }
 
     public List<Card> openItemContainer() {
@@ -68,11 +62,26 @@ public class User implements BasicUser {
                     .map(BattleCard.class::cast)
                     .collect(toList());
             if (cards.size() == 4) {
-                decks.add(cards);
+                deck = cards;
                 return true;
             } else {
                 return false;
             }
+        }
+    }
+
+    public boolean addItem(Item item) {
+        synchronized (inventory) {
+            return inventory.add(item);
+        }
+    }
+
+    public boolean spentCoins(int count) {
+        if (coins >= count) {
+            coins -= count;
+            return true;
+        } else {
+            return false;
         }
     }
 
