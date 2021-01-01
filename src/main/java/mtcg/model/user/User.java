@@ -1,8 +1,11 @@
 package mtcg.model.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
+import mtcg.model.battle.BattleReport;
+import mtcg.model.enums.BattleStatus;
 import mtcg.model.interfaces.BasicUser;
 import mtcg.model.interfaces.BattleCard;
 import mtcg.model.interfaces.Card;
@@ -10,9 +13,9 @@ import mtcg.model.interfaces.Item;
 import mtcg.model.items.CardPackage;
 
 import javax.security.auth.Subject;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -20,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 @Data
 public class User implements BasicUser {
 
+    @JsonIgnore
     private final Long id;
     private final String username;
     @Singular
@@ -31,10 +35,10 @@ public class User implements BasicUser {
     private int gamesPlayed;
     private int gamesWon;
 
-    public List<Card> getStack() {
+    public List<BattleCard> getStack() {
         return inventory.stream()
-                .filter(Card.class::isInstance)
-                .map(Card.class::cast)
+                .filter(BattleCard.class::isInstance)
+                .map(BattleCard.class::cast)
                 .collect(toList());
     }
 
@@ -53,16 +57,18 @@ public class User implements BasicUser {
         }
     }
 
-    public boolean createDeck(int pos1, int pos2, int pos3, int pos4) {
+    public boolean createDeck(List<Long> cardIds) {
+        if (cardIds.size() != 4) {
+            throw new IllegalArgumentException("Deck size must be 4!");
+        }
         synchronized (inventory) {
-            List<BattleCard> cards = Set.of(pos1, pos2, pos3, pos4).stream()
-                    .filter(index -> index >= 0 && index < inventory.size())
-                    .map(inventory::get)
+            List<BattleCard> deckCards = inventory.stream()
                     .filter(BattleCard.class::isInstance)
                     .map(BattleCard.class::cast)
+                    .filter(card -> cardIds.contains(card.getId()))
                     .collect(toList());
-            if (cards.size() == 4) {
-                deck = cards;
+            if (deckCards.size() == 4) {
+                deck = deckCards;
                 return true;
             } else {
                 return false;
@@ -70,9 +76,19 @@ public class User implements BasicUser {
         }
     }
 
+    public void resetDeck() {
+        deck = Collections.emptyList();
+    }
+
     public boolean addItem(Item item) {
         synchronized (inventory) {
             return inventory.add(item);
+        }
+    }
+
+    public boolean removeItem(Item item) {
+        synchronized (inventory) {
+            return inventory.remove(item);
         }
     }
 
@@ -85,7 +101,16 @@ public class User implements BasicUser {
         }
     }
 
+    public void updateStats(BattleReport battleReport) {
+        elo += battleReport.getEloChange();
+        gamesPlayed++;
+        if (BattleStatus.WON.equals(battleReport.getOutcome())) {
+            gamesWon++;
+        }
+    }
+
     @Override
+    @JsonIgnore
     public String getName() {
         return username;
     }

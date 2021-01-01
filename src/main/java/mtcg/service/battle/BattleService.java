@@ -2,8 +2,8 @@ package mtcg.service.battle;
 
 import http.model.annotation.Component;
 import lombok.extern.slf4j.Slf4j;
-import mtcg.model.Battle;
-import mtcg.model.BattleReport;
+import mtcg.model.battle.Battle;
+import mtcg.model.battle.BattleReport;
 import mtcg.model.enums.BattleStatus;
 import mtcg.model.enums.RuleResult;
 import mtcg.model.interfaces.BattleCard;

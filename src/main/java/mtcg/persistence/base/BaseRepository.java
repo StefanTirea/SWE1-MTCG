@@ -11,8 +11,8 @@ import mtcg.model.entity.annotation.Table;
 import org.postgresql.jdbc.PgArray;
 import org.postgresql.util.PSQLException;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -64,15 +64,13 @@ public abstract class BaseRepository<T> {
                 .map(field -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()))
                 .collect(Collectors.joining(","));
 
-        Table annotation = type.getAnnotation(Table.class);
-        String tableName = (String) annotation.annotationType().getDeclaredMethod("value").invoke(annotation, (Object[]) null);
-        String query = String.format("insert into \"%s\" (%s) values (%s)", tableName, insertColumns, values);
+        String query = String.format("insert into \"%s\" (%s) values (%s)", getTableName(), insertColumns, values);
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 0; i < fields.size(); i++) {
-                Object input = type.getMethod("get" + fields.get(i).getName().toUpperCase().charAt(0)+fields.get(i).getName().substring(1)).invoke(entity);
+                Object input = type.getMethod("get" + fields.get(i).getName().toUpperCase().charAt(0) + fields.get(i).getName().substring(1)).invoke(entity);
                 if (input instanceof Object[]) {
                     input = connection.createArrayOf("BIGINT", (Object[]) input);
                 }
@@ -89,14 +87,14 @@ public abstract class BaseRepository<T> {
                     if (generatedKeys.next()) {
                         connectionPool.releaseConnection(connection);
                         return generatedKeys.getLong(1);
-                    }
-                    else {
+                    } else {
                         log.error("Insert failed! No ID obtained with query {}", query);
                         connectionPool.releaseConnection(connection);
                         throw new IllegalStateException();
                     }
                 }
             } catch (PSQLException e) {
+                e.printStackTrace();
                 connectionPool.releaseConnection(connection);
                 throw new BadRequestException("Choose an other username!"); // TODO create new unique constraint exception
             }
@@ -114,15 +112,13 @@ public abstract class BaseRepository<T> {
                 .map(field -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()) + " = ?")
                 .collect(Collectors.joining(","));
 
-        Table annotation = type.getAnnotation(Table.class);
-        String tableName = (String) annotation.annotationType().getDeclaredMethod("value").invoke(annotation, (Object[]) null);
-        String query = String.format("update \"%s\" set %s where id = ?", tableName, updateColumns);
+        String query = String.format("update \"%s\" set %s where id = ?", getTableName(), updateColumns);
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         for (int i = 0; i < fields.size(); i++) {
-            Object input = type.getMethod("get" + fields.get(i).getName().toUpperCase().charAt(0)+fields.get(i).getName().substring(1)).invoke(entity);
+            Object input = type.getMethod("get" + fields.get(i).getName().toUpperCase().charAt(0) + fields.get(i).getName().substring(1)).invoke(entity);
             if (input instanceof Object[]) {
                 input = connection.createArrayOf("BIGINT", (Object[]) input);
             }
@@ -139,6 +135,62 @@ public abstract class BaseRepository<T> {
     }
 
     @SneakyThrows
+    public boolean update(Long id, Object... params) {
+        if (params.length % 2 != 0) {
+            throw new IllegalStateException();
+        }
+        Map<String, Object> filter = new HashMap<>();
+        for (int i = 1; i < params.length; i += 2) {
+            filter.put((String) params[i - 1], params[i]);
+        }
+
+        String updateColumn = filter.keySet().stream()
+                .map(key -> key + " = ?")
+                .collect(Collectors.joining(", "));
+
+        String query = String.format("update \"%s\" set %s where id = ?", getTableName(), updateColumn);
+        log.debug("Sending query: {}", query);
+        Connection connection = connectionPool.getConnection();
+
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        int counter = 1;
+        for (Object value : filter.values()) {
+            preparedStatement.setObject(counter++, value);
+        }
+        preparedStatement.setObject(counter, id);
+        try {
+            preparedStatement.execute();
+        } catch (PSQLException e) {
+            throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
+        }
+        connectionPool.releaseConnection(connection);
+        return true;
+    }
+
+    @SneakyThrows
+    public boolean delete(Long id) {
+        String query = String.format("delete from \"%s\" where id = ?", getTableName());
+        log.debug("Sending query: {}", query);
+        Connection connection = connectionPool.getConnection();
+
+        // TODO close prepared statements
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setLong(1, id);
+        try {
+            preparedStatement.execute();
+        } catch (PSQLException e) {
+            throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
+        }
+        connectionPool.releaseConnection(connection);
+        return true;
+    }
+
+    private String getTableName() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        Table annotation = type.getAnnotation(Table.class);
+        return (String) annotation.annotationType().getDeclaredMethod("value").invoke(annotation, (Object[]) null);
+    }
+
+    @SneakyThrows
     private List<T> select(Object... args) {
         if (args.length % 2 != 0) {
             throw new IllegalStateException();
@@ -152,9 +204,7 @@ public abstract class BaseRepository<T> {
                 .map(field -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()))
                 .collect(Collectors.joining(","));
 
-        Table annotation = type.getAnnotation(Table.class);
-        String tableName = (String) annotation.annotationType().getDeclaredMethod("value").invoke(annotation, (Object[]) null);
-        String query = String.format("select %s from \"%s\"", selectColumns, tableName);
+        String query = String.format("select %s from \"%s\"", selectColumns, getTableName());
         if (!filter.isEmpty()) {
             String whereClause = " where " + filter.keySet().stream()
                     .map(this::whereKey)
@@ -201,6 +251,9 @@ public abstract class BaseRepository<T> {
 
     @SneakyThrows
     private Object checkAndConvert(Object value, Class<?> type) {
+        if (value == null) {
+            return value;
+        }
         if (value instanceof PgArray) {
             return ((PgArray) value).getArray();
         } else if (value instanceof Timestamp) {

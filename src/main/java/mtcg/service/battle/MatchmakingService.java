@@ -3,9 +3,11 @@ package mtcg.service.battle;
 import http.model.annotation.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import mtcg.model.BattleReport;
+import mtcg.model.battle.BattleReport;
 import mtcg.model.enums.BattleStatus;
 import mtcg.model.user.User;
+import mtcg.persistence.BattleResultRepository;
+import mtcg.persistence.UserRepository;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.PriorityQueue;
@@ -18,6 +20,8 @@ import static mtcg.model.enums.BattleStatus.WAITING;
 @RequiredArgsConstructor
 public class MatchmakingService {
 
+    private final BattleResultRepository battleResultRepository;
+    private final UserRepository userRepository;
     private final BattleService battleService;
     private final Queue<Pair<String, String>> queue = new PriorityQueue<>();
 
@@ -39,7 +43,9 @@ public class MatchmakingService {
         for (int i = 0; i < 100; i++) {
             battleStatus = battleService.getBattleStatus(battleId);
             if (BattleStatus.ENDED.equals(battleStatus)) {
-                return battleService.getBattleReport(battleId, user.getUsername());
+                BattleReport battleReport = battleService.getBattleReport(battleId, user.getUsername());
+                saveResults(user, battleReport);
+                return battleReport;
             }
             Thread.sleep(50);
         }
@@ -49,5 +55,11 @@ public class MatchmakingService {
         return BattleReport.builder()
                 .outcome(battleStatus)
                 .build();
+    }
+
+    private void saveResults(User user, BattleReport battleReport) {
+        user.updateStats(battleReport);
+        userRepository.updateUser(user);
+        battleResultRepository.saveBattleReport(battleReport, user.getId());
     }
 }

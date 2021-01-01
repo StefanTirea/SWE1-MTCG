@@ -36,7 +36,6 @@ public class UserEntity {
     @Column
     private final int gamesWon;
 
-    @Builder
     public UserEntity(String username, String password) {
         this.id = null;
         this.username = username;

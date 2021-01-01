@@ -12,5 +12,5 @@ public interface BasicUser extends Authentication {
 
     List<BattleCard> getDeck();
 
-    List<Card> getStack();
+    List<BattleCard> getStack();
 }

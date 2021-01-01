@@ -1,4 +1,4 @@
-package mtcg.model;
+package mtcg.model.battle;
 
 import lombok.Builder;
 import lombok.Data;

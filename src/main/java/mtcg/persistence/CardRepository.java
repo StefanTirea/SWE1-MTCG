@@ -7,11 +7,13 @@ import mtcg.model.entity.CardEntity;
 import mtcg.model.enums.ElementType;
 import mtcg.model.enums.MonsterType;
 import mtcg.model.interfaces.BattleCard;
+import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.Item;
 import mtcg.persistence.base.BaseRepository;
 import mtcg.persistence.base.ConnectionPool;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -27,6 +29,11 @@ public class CardRepository extends BaseRepository<CardEntity> {
                 .collect(Collectors.toList());
     }
 
+    public Optional<BattleCard> getBattleCard(Long cardId) {
+        return getEntityById(cardId)
+                .map(this::convert);
+    }
+
     public List<BattleCard> getBattleCardsByIds(List<Long> cardIds) {
         return getEntitiesByFilter("id in", cardIds).stream()
                 .map(this::convert)
@@ -34,15 +41,10 @@ public class CardRepository extends BaseRepository<CardEntity> {
     }
 
     public List<Long> saveBattleCardWithoutUser(List<? extends Item> items) {
-        return saveBattleCardWithUser(items, null);
-    }
-
-    public List<Long> saveBattleCardWithUser(List<? extends Item> items, Long userId) {
         return items.stream()
                 .filter(item -> item instanceof BattleCard)
                 .map(item -> (BattleCard) item)
                 .map(battleCard -> CardEntity.builder()
-                        .userId(userId)
                         .name(battleCard.getName())
                         .damage(battleCard.getDamage())
                         .elementType(battleCard.getElementType())
@@ -51,6 +53,27 @@ public class CardRepository extends BaseRepository<CardEntity> {
                 )
                 .map(this::insert)
                 .collect(Collectors.toList());
+    }
+
+    public boolean updateBattleCards(List<? extends Card> items, Long userId) {
+        items.stream()
+                .filter(item -> item instanceof BattleCard)
+                .map(item -> (BattleCard) item)
+                .map(battleCard -> CardEntity.builder()
+                        .id(battleCard.getId())
+                        .userId(userId)
+                        .build()
+                )
+                .forEach(this::update);
+        return true;
+    }
+
+    public void updateCardLockStatus(Long cardId, Long userId, boolean locked) {
+        update(CardEntity.builder()
+                .id(cardId)
+                .userId(userId)
+                .locked(locked)
+                .build());
     }
 
     private BattleCard convert(CardEntity cardEntity) {
