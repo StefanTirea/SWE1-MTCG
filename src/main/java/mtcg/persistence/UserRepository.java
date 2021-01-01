@@ -1,6 +1,8 @@
 package mtcg.persistence;
 
 import http.model.annotation.Component;
+import http.model.enums.HttpStatus;
+import http.model.http.HttpResponse;
 import mtcg.model.entity.TokenEntity;
 import mtcg.model.entity.UserEntity;
 import mtcg.model.interfaces.BattleCard;
@@ -31,27 +33,27 @@ public class UserRepository extends BaseRepository<UserEntity> {
         return getEntityById(tokenEntity.get().getUserId());
     }
 
-    public Optional<String> loginUser(UserData userData) {
+    public HttpResponse loginUser(UserData userData) {
         Optional<UserEntity> user = getEntityByFilter("username", userData.getUsername(), "password", userData.getPassword());
         if (user.isEmpty()) {
-            return Optional.empty();
+            return HttpResponse.builder().httpStatus(HttpStatus.BAD_REQUEST).build();
         }
-        return Optional.of(tokenRepository.getTokenByUser(user.get().getId())
+        String token = tokenRepository.getTokenByUser(user.get().getId())
                 .orElseGet(() -> {
                     tokenRepository.insert(TokenEntity.builder()
                             .userId(user.get().getId())
-                            .token(RandomStringUtils.randomAlphanumeric(20))
+                            .token(RandomStringUtils.randomAlphanumeric(25))
                             .expiresAt(LocalDateTime.now().plusHours(8))
                             .build());
                     return tokenRepository.getTokenByUser(user.get().getId()).orElseThrow();
-                }).getToken());
+                }).getToken();
+        return HttpResponse.builder()
+                .content(token)
+                .build();
     }
 
     public boolean createUser(UserData userData) {
-        insert(UserEntity.builder()
-                .username(userData.getUsername())
-                .password(userData.getPassword())
-                .build());
+        insert(new UserEntity(userData.getUsername(), userData.getPassword()));
         return true;
     }
 
@@ -64,5 +66,9 @@ public class UserRepository extends BaseRepository<UserEntity> {
                 .deck(user.getDeck().stream().map(BattleCard::getId).toArray(Long[]::new))
                 .elo(user.getElo())
                 .build());
+    }
+
+    public boolean updateUserCredentials(Long userId, String username, String password) {
+        return update(userId, "username", username, "password", password);
     }
 }

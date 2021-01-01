@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 public class CardGenerator {
 
     // TODO: add modifier for each adjective (plus damage or minus damage)
-    private final List<String> cardAdjectives = List.of("Happy", "Crazy", "Spooky", "Sleepy", "Magical");
+    private final List<String> cardAdjectives = List.of("Happy", "Crazy", "Spooky", "Sleepy", "Magical", "Legendary");
 
     public MonsterCard generateMonsterCard() {
         MonsterType monsterType = getRandomMonsterType();

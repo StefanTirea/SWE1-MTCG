@@ -8,7 +8,7 @@ CREATE TABLE battle_result (
     user_id bigint  NOT NULL,
     time timestamp  NOT NULL,
     rounds int  NOT NULL,
-    result int  NOT NULL,
+    result varchar(50)  NOT NULL,
     elo_change int  NOT NULL,
     CONSTRAINT battle_result_pk PRIMARY KEY (id)
 );
@@ -18,7 +18,7 @@ CREATE TABLE card (
     id bigserial  NOT NULL,
     user_id bigint  NULL,
     name varchar(100)  NOT NULL,
-    monster_type varchar(50)  NOT NULL,
+    monster_type varchar(50)  NULL,
     element_type varchar(50)  NOT NULL,
     damage int  NOT NULL,
     locked boolean  NOT NULL,
@@ -28,6 +28,7 @@ CREATE TABLE card (
 -- Table: package
 CREATE TABLE package (
     id bigserial  NOT NULL,
+    name varchar(100)  NOT NULL,
     description varchar(250)  NOT NULL,
     user_id int8  NOT NULL,
     CONSTRAINT package_pk PRIMARY KEY (id)
@@ -47,6 +48,7 @@ CREATE TABLE token (
     user_id bigint  NOT NULL,
     token varchar(150)  NOT NULL,
     expires_at timestamp  NOT NULL,
+    CONSTRAINT token_unique UNIQUE (token) NOT DEFERRABLE  INITIALLY IMMEDIATE,
     CONSTRAINT token_pk PRIMARY KEY (id)
 );
 

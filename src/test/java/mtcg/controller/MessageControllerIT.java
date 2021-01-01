@@ -1,6 +1,7 @@
 package mtcg.controller;
 
 import http.service.http.HttpServerITBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
@@ -10,6 +11,7 @@ import static http.model.enums.HttpStatus.NOT_FOUND;
 import static http.model.enums.HttpStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
 class MessageControllerIT extends HttpServerITBase {
 
     @Test

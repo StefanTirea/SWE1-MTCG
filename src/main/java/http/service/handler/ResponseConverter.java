@@ -18,25 +18,32 @@ public class ResponseConverter {
         HttpResponse newResponse;
         if (response instanceof HttpResponse) {
             newResponse = (HttpResponse) response;
+            if (newResponse.getHttpStatus() == null) {
+                newResponse = newResponse.toBuilder()
+                        .httpStatus(HttpStatus.OK)
+                        .build();
+            }
         } else if (response instanceof Optional<?>) {
             newResponse = ((Optional<?>) response)
-                    .map(content -> HttpResponse.builder().httpStatus(HttpStatus.OK).content(content).build())
+                    .map(content -> HttpResponse.builder().httpStatus(getStatus(method)).content(content).build())
                     .orElse(HttpResponse.builder().httpStatus(HttpStatus.NOT_FOUND).build());
         } else {
             newResponse = HttpResponse.builder()
-                    .httpStatus(HttpStatus.OK)
+                    .httpStatus(getStatus(method))
                     .content(response)
-                    .build();
-        }
-
-        if (HttpMethod.POST.equals(method)) {
-            newResponse = newResponse.toBuilder()
-                    .httpStatus(HttpStatus.CREATED)
                     .build();
         }
 
         return newResponse.toBuilder()
                 .headers(context.getHeaders())
                 .build();
+    }
+
+    private static HttpStatus getStatus(HttpMethod method) {
+        if (HttpMethod.POST.equals(method)) {
+            return HttpStatus.CREATED;
+        } else {
+            return HttpStatus.OK;
+        }
     }
 }

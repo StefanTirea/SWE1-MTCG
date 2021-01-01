@@ -3,21 +3,17 @@ package mtcg.controller;
 import http.model.annotation.Controller;
 import http.model.annotation.Get;
 import http.model.annotation.Post;
+import http.model.annotation.Put;
 import http.model.annotation.RequestBody;
 import http.model.annotation.Secured;
+import http.model.enums.HttpStatus;
 import http.model.exception.BadRequestException;
+import http.model.http.HttpResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import mtcg.model.user.User;
 import mtcg.model.user.UserData;
 import mtcg.persistence.UserRepository;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
-import java.util.Arrays;
 import java.util.Optional;
 
 @Controller
@@ -41,8 +37,21 @@ public class UserController {
         }
     }
 
+    @Put("/api/users")
+    @Secured
+    public HttpResponse editUser(User user, @RequestBody UserData userData) {
+        if (userData.valid()) {
+            if (user.getUsername().equals(userData.getUsername())
+                    || userRepository.getEntitiesByFilter("username", userData.getUsername()).isEmpty()) {
+                userRepository.updateUserCredentials(user.getId(), userData.getUsername(), userData.getPassword());
+                return HttpResponse.builder().httpStatus(HttpStatus.OK).build();
+            }
+        }
+        return HttpResponse.builder().httpStatus(HttpStatus.BAD_REQUEST).build();
+    }
+
     @Post("/api/sessions")
-    public Optional<String> loginUser(@RequestBody UserData userData) {
+    public HttpResponse loginUser(@RequestBody UserData userData) {
         if (userData.valid()) {
             return userRepository.loginUser(userData);
         } else {

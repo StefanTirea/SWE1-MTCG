@@ -1,13 +1,11 @@
 package mtcg.model.items;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-import mtcg.model.entity.CardEntity;
 import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.ItemContainer;
 
