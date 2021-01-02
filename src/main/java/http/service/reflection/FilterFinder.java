@@ -8,7 +8,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import mtcg.persistence.base.ConnectionPool;
+import http.service.persistence.ConnectionPool;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +39,7 @@ public class FilterFinder {
         return FilterManager.builder()
                 .preFilters(instantiatedPreFilters)
                 .postFilters(instantiatedPostFilters)
-                .connectionPool((ConnectionPool) componentsObjects.get(ConnectionPool.class))
+                .connectionPool(new ConnectionPool())
                 .build();
     }
 

@@ -3,14 +3,13 @@ package mtcg.persistence;
 import http.model.annotation.Component;
 import mtcg.model.entity.TradingEntity;
 import mtcg.model.user.TradingOffer;
-import mtcg.persistence.base.BaseRepository;
-import mtcg.persistence.base.ConnectionPool;
+import http.service.persistence.ConnectionPool;
 
 @Component
 public class TradingRepository extends BaseRepository<TradingEntity> {
 
-    public TradingRepository(ConnectionPool connectionPool) {
-        super(connectionPool, TradingEntity.class);
+    public TradingRepository() {
+        super(TradingEntity.class);
     }
 
     public boolean saveTradingOffer(TradingOffer tradingOffer, Long userId) {

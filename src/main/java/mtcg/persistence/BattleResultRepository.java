@@ -3,8 +3,6 @@ package mtcg.persistence;
 import http.model.annotation.Component;
 import mtcg.model.battle.BattleReport;
 import mtcg.model.entity.BattleResultEntity;
-import mtcg.persistence.base.BaseRepository;
-import mtcg.persistence.base.ConnectionPool;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,8 +11,8 @@ import java.util.stream.Collectors;
 @Component
 public class BattleResultRepository extends BaseRepository<BattleResultEntity> {
 
-    public BattleResultRepository(ConnectionPool connectionPool) {
-        super(connectionPool, BattleResultEntity.class);
+    public BattleResultRepository() {
+        super(BattleResultEntity.class);
     }
 
     public boolean saveBattleReport(BattleReport battleReport, Long userId) {

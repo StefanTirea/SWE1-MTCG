@@ -74,12 +74,59 @@ My Pitfalls designing & programming the HTTP Server are documented
 
 ### MTCG + Endpoints
 
+The MTCG part contains the classes for the game & user, persistence and handling http request
+Persistence with PostgreSQL:
+* **Connection Pooling:** Instead of initializing a new database connection for every request, the `ConnectionPool` class
+  manages all the connections which are reused among all requests to save resources.
+  Additionally, all SQL queries rollback if an exception occurs.
+    * Docker Compose is used to start the database
+    * For the Java Application the database settings can be set in `resources/database-dev.yml`
+  
+* **Reflections in Repository:** Almost all queries are generated dynamically with Reflections.
+  `BaseRepository` provides base methods for **select, update, insert & delete** while also converting to the required entity type
+    * Entity classes must be annotated with `@Table("table_name")` and the fields with `@Column`
+    * By default, all column fields are used for update, insert & select
+    * Fields can be excluded from updating with `@IgnoreUpdate`
+    * One Connection is used across all Repository for every Http Request to provide the possibility to rollback
+      if an exception occurred
+
+* **Token based Security:** Implemented with a simple PreFilter which accesses the `Authorization` Header
+  and tries to select the token / user. If found, the user is injected into `HttpExchange`.
+  
+* **Controller & Service:** All are programmed using Dependency Injection & Controller Annotations which simplifies the code a lot.
+
+* **Battles & Matchmaking:** The `MatchmakingService` holds all Players/Requests which want to battle.
+  Player 1 creates a random Battle ID which is used in the `BattleService` to register a battle.
+  They wait for 10 seconds for an opponent otherwise they will leave the queue.
+  During the 10 seconds, both players check the status of the battle. If the status changes to `IN_PROGRESS` both players will wait for the result.
 
 
 #### Pitfalls
 
 My Pitfalls designing & programming the HTTP Server are documented
 [here](https://github.com/StefanTirea/SWE1-MTCG/wiki/MTCG-Endpoints-&-Persistence).
+
+## Test coverage
+
+Includes:
+* Http Controller Reflections
+* The Request converter to insure proper conversion to the desired type
+* Exception Response handling
+* One IT for the Controller
+* The Battle System
+* CardGenerator & the custom rule system
+* All the cards with their weakness & attacks
+* Card Package
+
+Properly Testing all the Reflections is very hard and time consuming
+and probably requires even more code to provide proper mocks.
+I settled on Testing the most important Reflection class.
+<br><br>
+Github Actions are configured to build & test the application to ensure green tests before merging into master.
+
+## Time spent
+
+67h
 
 ## Getting Started
 

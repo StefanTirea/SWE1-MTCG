@@ -1,7 +1,8 @@
-package mtcg.persistence.base;
+package mtcg.persistence;
 
 import com.google.common.base.CaseFormat;
 import http.model.exception.BadRequestException;
+import http.service.persistence.ConnectionContext;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,6 @@ import java.util.stream.IntStream;
 @Slf4j
 public abstract class BaseRepository<T> {
 
-    private final ConnectionPool connectionPool;
     private final Class<T> type;
 
     public List<T> getEntitiesById(Long id) {
@@ -66,7 +66,7 @@ public abstract class BaseRepository<T> {
 
         String query = String.format("insert into %s (%s) values (%s)", getTableName(), insertColumns, values);
         log.debug("Sending query: {}", query);
-        Connection connection = connectionPool.getConnection();
+        Connection connection = getConnection();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 0; i < fields.size(); i++) {
@@ -110,7 +110,7 @@ public abstract class BaseRepository<T> {
 
         String query = String.format("update %s set %s where id = ?", getTableName(), updateColumns);
         log.debug("Sending query: {}", query);
-        Connection connection = connectionPool.getConnection();
+        Connection connection = getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         for (int i = 0; i < fields.size(); i++) {
@@ -145,7 +145,7 @@ public abstract class BaseRepository<T> {
 
         String query = String.format("update %s set %s where id = ?", getTableName(), updateColumn);
         log.debug("Sending query: {}", query);
-        Connection connection = connectionPool.getConnection();
+        Connection connection = getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         int counter = 1;
@@ -165,7 +165,7 @@ public abstract class BaseRepository<T> {
     public boolean delete(Long id) {
         String query = String.format("delete from %s where id = ?", getTableName());
         log.debug("Sending query: {}", query);
-        Connection connection = connectionPool.getConnection();
+        Connection connection = getConnection();
 
         // TODO close prepared statements
         PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -206,7 +206,7 @@ public abstract class BaseRepository<T> {
             query += whereClause;
         }
         log.debug("Sending query: {}", query);
-        Connection connection = connectionPool.getConnection();
+        Connection connection = getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         for (int i = 0; i < filter.size(); i++) {
@@ -265,5 +265,9 @@ public abstract class BaseRepository<T> {
         } else {
             return key + " = ?";
         }
+    }
+
+    private Connection getConnection() {
+        return ConnectionContext.CONNECTION.get();
     }
 }
