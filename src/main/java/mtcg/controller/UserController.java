@@ -6,21 +6,17 @@ import http.model.annotation.Post;
 import http.model.annotation.Put;
 import http.model.annotation.RequestBody;
 import http.model.annotation.Secured;
-import http.model.enums.HttpStatus;
-import http.model.exception.BadRequestException;
 import http.model.http.HttpResponse;
 import lombok.RequiredArgsConstructor;
 import mtcg.model.user.User;
 import mtcg.model.user.UserData;
-import mtcg.persistence.UserRepository;
-
-import java.util.Optional;
+import mtcg.service.UserService;
 
 @Controller
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Get("/api/users")
     @Secured
@@ -30,32 +26,17 @@ public class UserController {
 
     @Post("/api/users")
     public boolean registerUser(@RequestBody UserData userData) {
-        if (userData.valid()) {
-            return userRepository.createUser(userData);
-        } else {
-            throw new BadRequestException("username & password must not be blank!");
-        }
+        return userService.registerUser(userData);
     }
 
     @Put("/api/users")
     @Secured
     public HttpResponse editUser(User user, @RequestBody UserData userData) {
-        if (userData.valid()) {
-            if (user.getUsername().equals(userData.getUsername())
-                    || userRepository.getEntitiesByFilter("username", userData.getUsername()).isEmpty()) {
-                userRepository.updateUserCredentials(user.getId(), userData.getUsername(), userData.getPassword());
-                return HttpResponse.builder().httpStatus(HttpStatus.OK).build();
-            }
-        }
-        return HttpResponse.builder().httpStatus(HttpStatus.BAD_REQUEST).build();
+        return userService.editUser(user, userData);
     }
 
     @Post("/api/sessions")
     public HttpResponse loginUser(@RequestBody UserData userData) {
-        if (userData.valid()) {
-            return userRepository.loginUser(userData);
-        } else {
-            throw new BadRequestException("username & password must not be blank!");
-        }
+        return userService.loginUser(userData);
     }
 }

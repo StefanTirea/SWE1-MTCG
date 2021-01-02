@@ -11,6 +11,7 @@ import mtcg.model.interfaces.BattleCard;
 import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.Item;
 import mtcg.model.items.CardPackage;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.security.auth.Subject;
 import java.util.Collections;
@@ -42,18 +43,20 @@ public class User implements BasicUser {
                 .collect(toList());
     }
 
-    public List<Card> openItemContainer() {
+    public Pair<Long, List<Long>> openItemContainer() {
         synchronized (inventory) {
             Optional<CardPackage> cardPackage = inventory.stream()
                     .filter(item -> item instanceof CardPackage)
                     .findAny()
                     .map(CardPackage.class::cast);
-            cardPackage.ifPresent(inventory::remove);
-            List<Card> cards = cardPackage.stream()
-                    .flatMap(container -> container.open().stream())
-                    .collect(toList());
-            inventory.addAll(cards);
-            return cards;
+            if (cardPackage.isPresent()) {
+                inventory.remove(cardPackage.get());
+                List<Card> cards = cardPackage.get().open();
+                inventory.addAll(cards);
+                return Pair.of(cardPackage.get().getId(), cards.stream().map(Card::getId).collect(toList()));
+            } else {
+                throw new IllegalArgumentException("No Package available");
+            }
         }
     }
 

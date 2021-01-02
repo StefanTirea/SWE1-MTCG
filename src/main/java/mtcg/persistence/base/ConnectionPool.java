@@ -7,21 +7,22 @@ import mtcg.config.DatabaseConfig;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 @Component
 @Slf4j
 public final class ConnectionPool {
 
     private final DatabaseConfig databaseConfig = DatabaseConfig.getConfig();
-    private final Stack<Connection> connectionPool = new Stack<>();
+    private final Deque<Connection> connectionPool = new ArrayDeque<>();
     private int openConnections;
 
     @SneakyThrows
     protected Connection getConnection() {
         synchronized (connectionPool) {
             if (connectionPool.isEmpty()) {
-                if (openConnections <= databaseConfig.getPoolSize()) {
+                if ((openConnections + connectionPool.size()) <= databaseConfig.getPoolSize()) {
                     connectionPool.push(createConnection());
                 } else {
                     for (int i = 0; i < 100; i++) {
@@ -38,18 +39,24 @@ public final class ConnectionPool {
     }
 
     @SneakyThrows
-    protected void releaseConnection(Connection connection) {
+    public void releaseConnection(Connection connection, boolean commit) {
         if (connection.isClosed()) {
             log.warn("Connection should not be closed!");
+        } else {
+            if (commit) {
+                connection.commit();
+            } else {
+                connection.rollback();
+            }
+            connectionPool.add(connection);
         }
-        // TODO when exception rollback OR when sucessfull commmit! Maybe with threadlocal!
-        connection.commit();
-        connectionPool.add(connection);
+        openConnections--;
     }
 
     @SneakyThrows
     private Connection createConnection() {
         Connection connection = DriverManager.getConnection(databaseConfig.getConnectionString(), databaseConfig.getUsername(), databaseConfig.getPassword());
+        openConnections++;
         connection.setAutoCommit(false);
         return connection;
     }
