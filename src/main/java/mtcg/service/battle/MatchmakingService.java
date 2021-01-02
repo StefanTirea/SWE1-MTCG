@@ -46,12 +46,15 @@ public class MatchmakingService {
                 BattleReport battleReport = battleService.getBattleReport(battleId, user.getUsername());
                 saveResults(user, battleReport);
                 return battleReport;
+            } else if (BattleStatus.IN_PROGRESS.equals(battleStatus) && i >= 80) {
+                i = 0;
             }
             Thread.sleep(100);
         }
         synchronized (queue) {
             queue.poll();
         }
+        // TODO Delete battle in Map
         return BattleReport.builder()
                 .outcome(battleStatus)
                 .build();

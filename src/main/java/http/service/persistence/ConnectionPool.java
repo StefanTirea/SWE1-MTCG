@@ -1,29 +1,34 @@
-package mtcg.persistence.base;
+package http.service.persistence;
 
-import http.model.annotation.Component;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import mtcg.config.DatabaseConfig;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
-@Component
 @Slf4j
 public final class ConnectionPool {
 
     private final DatabaseConfig databaseConfig = DatabaseConfig.getConfig();
-    private final Deque<Connection> connectionPool = new ArrayDeque<>();
+    private final Deque<Connection> pool = new ArrayDeque<>();
+    private final List<Connection> allConnections = new ArrayList<>();
     private int openConnections;
 
+    public ConnectionPool() {
+        pool.add(createConnection());
+        Runtime.getRuntime().addShutdownHook(new Thread(this::closeConnections));
+    }
+
     @SneakyThrows
-    protected Connection getConnection() {
-        synchronized (connectionPool) {
-            if (connectionPool.isEmpty()) {
-                if ((openConnections + connectionPool.size()) <= databaseConfig.getPoolSize()) {
-                    connectionPool.push(createConnection());
+    public void setConnection() {
+        synchronized (pool) {
+            if (pool.isEmpty()) {
+                if (openConnections <= databaseConfig.getPoolSize()) {
+                    pool.push(createConnection());
                 } else {
                     for (int i = 0; i < 100; i++) {
                         Thread.sleep(50);
@@ -34,12 +39,14 @@ public final class ConnectionPool {
                     }
                 }
             }
-            return connectionPool.pop();
+            openConnections++;
+            ConnectionContext.CONNECTION.set(pool.pop());
         }
     }
 
     @SneakyThrows
-    public void releaseConnection(Connection connection, boolean commit) {
+    public void releaseConnection(boolean commit) {
+        Connection connection = ConnectionContext.CONNECTION.get();
         if (connection.isClosed()) {
             log.warn("Connection should not be closed!");
         } else {
@@ -48,7 +55,9 @@ public final class ConnectionPool {
             } else {
                 connection.rollback();
             }
-            connectionPool.add(connection);
+            synchronized (pool) {
+                pool.add(connection);
+            }
         }
         openConnections--;
     }
@@ -56,8 +65,15 @@ public final class ConnectionPool {
     @SneakyThrows
     private Connection createConnection() {
         Connection connection = DriverManager.getConnection(databaseConfig.getConnectionString(), databaseConfig.getUsername(), databaseConfig.getPassword());
-        openConnections++;
+        allConnections.add(connection);
         connection.setAutoCommit(false);
         return connection;
+    }
+
+    @SneakyThrows
+    private void closeConnections() {
+        for (Connection connection : allConnections) {
+            connection.close();
+        }
     }
 }

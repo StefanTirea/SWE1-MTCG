@@ -1,4 +1,4 @@
-package mtcg.config;
+package http.service.persistence;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

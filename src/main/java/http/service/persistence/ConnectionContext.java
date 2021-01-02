@@ -1,4 +1,4 @@
-package mtcg.persistence.base;
+package http.service.persistence;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

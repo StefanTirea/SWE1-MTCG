@@ -11,6 +11,7 @@ import mtcg.model.interfaces.Consumable;
 @AllArgsConstructor
 public class SpellCardConsumable implements Card, Consumable {
 
+    private Long id;
     private String name;
     private String description;
 

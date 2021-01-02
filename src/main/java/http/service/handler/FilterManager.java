@@ -8,12 +8,10 @@ import http.model.interfaces.Authentication;
 import http.model.interfaces.Filter;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import mtcg.persistence.base.ConnectionContext;
-import mtcg.persistence.base.ConnectionPool;
+import http.service.persistence.ConnectionPool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -30,7 +28,8 @@ public class FilterManager {
 
     public HttpResponse handleRequest(PathHandler pathHandler,
                                       Object classObject,
-                                      Object[] parameters) throws IllegalAccessException, SQLException {
+                                      Object[] parameters) throws IllegalAccessException {
+        connectionPool.setConnection();
         doFilterBefore();
         checkRoles(pathHandler.getRequiredRoles());
         injectUser(pathHandler.getMethod(), parameters);
@@ -39,11 +38,11 @@ public class FilterManager {
             response = ResponseConverter.convertToHttpResponse(pathHandler.getMethod().invoke(classObject, parameters), pathHandler.getHttpMethod());
             HTTP_EXCHANGE_CONTEXT.get().setResponse(response);
         } catch (InvocationTargetException e) {
-            connectionPool.releaseConnection(ConnectionContext.CONNECTION.get(), false);
+            connectionPool.releaseConnection(false);
             throw new RuntimeException(e.getCause());
         }
         doFilterAfter();
-        connectionPool.releaseConnection(ConnectionContext.CONNECTION.get(), true);
+        connectionPool.releaseConnection(true);
         return response;
     }
 

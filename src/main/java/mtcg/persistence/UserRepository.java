@@ -8,8 +8,6 @@ import mtcg.model.entity.UserEntity;
 import mtcg.model.interfaces.BattleCard;
 import mtcg.model.user.User;
 import mtcg.model.user.UserData;
-import mtcg.persistence.base.BaseRepository;
-import mtcg.persistence.base.ConnectionPool;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.LocalDateTime;
@@ -20,8 +18,8 @@ public class UserRepository extends BaseRepository<UserEntity> {
 
     private final TokenRepository tokenRepository;
 
-    public UserRepository(ConnectionPool connectionPool, TokenRepository tokenRepository) {
-        super(connectionPool, UserEntity.class);
+    public UserRepository(TokenRepository tokenRepository) {
+        super(UserEntity.class);
         this.tokenRepository = tokenRepository;
     }
 

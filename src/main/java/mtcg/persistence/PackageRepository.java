@@ -2,12 +2,8 @@ package mtcg.persistence;
 
 import http.model.annotation.Component;
 import mtcg.model.entity.PackageEntity;
-import mtcg.model.interfaces.Card;
 import mtcg.model.items.CardPackage;
-import mtcg.persistence.base.BaseRepository;
-import mtcg.persistence.base.ConnectionPool;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,10 +13,9 @@ public class PackageRepository extends BaseRepository<PackageEntity> {
     private final PackagedItemsRepository packagedItemsRepository;
     private final CardRepository cardRepository;
 
-    public PackageRepository(ConnectionPool connectionPool,
-                             PackagedItemsRepository packagedItemsRepository,
+    public PackageRepository(PackagedItemsRepository packagedItemsRepository,
                              CardRepository cardRepository) {
-        super(connectionPool, PackageEntity.class);
+        super(PackageEntity.class);
         this.packagedItemsRepository = packagedItemsRepository;
         this.cardRepository = cardRepository;
     }

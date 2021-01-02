@@ -7,10 +7,7 @@ import mtcg.model.entity.CardEntity;
 import mtcg.model.enums.ElementType;
 import mtcg.model.enums.MonsterType;
 import mtcg.model.interfaces.BattleCard;
-import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.Item;
-import mtcg.persistence.base.BaseRepository;
-import mtcg.persistence.base.ConnectionPool;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +16,8 @@ import java.util.stream.Collectors;
 @Component
 public class CardRepository extends BaseRepository<CardEntity> {
 
-    public CardRepository(ConnectionPool connectionPool) {
-        super(connectionPool, CardEntity.class);
+    public CardRepository() {
+        super(CardEntity.class);
     }
 
     public List<BattleCard> getBattleCardsByUser(Long userId) {
