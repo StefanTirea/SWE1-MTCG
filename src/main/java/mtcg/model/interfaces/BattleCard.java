@@ -6,8 +6,6 @@ import mtcg.model.enums.MonsterType;
 
 public interface BattleCard extends Card, Attackable {
 
-    Long getId();
-
     int getDamage();
 
     ElementType getElementType();

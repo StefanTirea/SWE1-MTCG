@@ -55,12 +55,10 @@ public class CardRepository extends BaseRepository<CardEntity> {
                 .collect(Collectors.toList());
     }
 
-    public boolean updateBattleCards(List<? extends Card> items, Long userId) {
-        items.stream()
-                .filter(item -> item instanceof BattleCard)
-                .map(item -> (BattleCard) item)
-                .map(battleCard -> CardEntity.builder()
-                        .id(battleCard.getId())
+    public boolean updateBattleCards(List<Long> cardIds, Long userId) {
+        cardIds.stream()
+                .map(cardId -> CardEntity.builder()
+                        .id(cardId)
                         .userId(userId)
                         .build()
                 )

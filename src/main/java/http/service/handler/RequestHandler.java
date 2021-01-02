@@ -107,7 +107,7 @@ public class RequestHandler {
                 .filter(parameter -> Authentication.class.isAssignableFrom(parameter.getType()))
                 .map(Parameter::getName)
                 .findFirst()
-                .ifPresent(name -> parameters.put(name, "{AUTHENTICATION}"));
+                .ifPresent(name -> parameters.put(name, null));
 
         return Arrays.stream(pathHandler.getMethod().getParameters())
                 .map(Parameter::getName)

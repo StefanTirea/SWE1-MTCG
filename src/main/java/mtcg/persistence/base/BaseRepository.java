@@ -64,7 +64,7 @@ public abstract class BaseRepository<T> {
                 .map(field -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()))
                 .collect(Collectors.joining(","));
 
-        String query = String.format("insert into \"%s\" (%s) values (%s)", getTableName(), insertColumns, values);
+        String query = String.format("insert into %s (%s) values (%s)", getTableName(), insertColumns, values);
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
@@ -80,22 +80,18 @@ public abstract class BaseRepository<T> {
                 int affectedRows = preparedStatement.executeUpdate();
                 if (affectedRows == 0) {
                     log.error("Could not insert row! query: {}", query);
-                    connectionPool.releaseConnection(connection);
                     throw new IllegalStateException();
                 }
                 try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
-                        connectionPool.releaseConnection(connection);
                         return generatedKeys.getLong(1);
                     } else {
                         log.error("Insert failed! No ID obtained with query {}", query);
-                        connectionPool.releaseConnection(connection);
                         throw new IllegalStateException();
                     }
                 }
             } catch (PSQLException e) {
                 e.printStackTrace();
-                connectionPool.releaseConnection(connection);
                 throw new BadRequestException("Choose an other username!"); // TODO create new unique constraint exception
             }
         }
@@ -112,7 +108,7 @@ public abstract class BaseRepository<T> {
                 .map(field -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()) + " = ?")
                 .collect(Collectors.joining(","));
 
-        String query = String.format("update \"%s\" set %s where id = ?", getTableName(), updateColumns);
+        String query = String.format("update %s set %s where id = ?", getTableName(), updateColumns);
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
@@ -130,7 +126,6 @@ public abstract class BaseRepository<T> {
         } catch (PSQLException e) {
             throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
         }
-        connectionPool.releaseConnection(connection);
         return true;
     }
 
@@ -148,7 +143,7 @@ public abstract class BaseRepository<T> {
                 .map(key -> key + " = ?")
                 .collect(Collectors.joining(", "));
 
-        String query = String.format("update \"%s\" set %s where id = ?", getTableName(), updateColumn);
+        String query = String.format("update %s set %s where id = ?", getTableName(), updateColumn);
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
@@ -163,13 +158,12 @@ public abstract class BaseRepository<T> {
         } catch (PSQLException e) {
             throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
         }
-        connectionPool.releaseConnection(connection);
         return true;
     }
 
     @SneakyThrows
     public boolean delete(Long id) {
-        String query = String.format("delete from \"%s\" where id = ?", getTableName());
+        String query = String.format("delete from %s where id = ?", getTableName());
         log.debug("Sending query: {}", query);
         Connection connection = connectionPool.getConnection();
 
@@ -181,13 +175,13 @@ public abstract class BaseRepository<T> {
         } catch (PSQLException e) {
             throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
         }
-        connectionPool.releaseConnection(connection);
         return true;
     }
 
     private String getTableName() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         Table annotation = type.getAnnotation(Table.class);
-        return (String) annotation.annotationType().getDeclaredMethod("value").invoke(annotation, (Object[]) null);
+        String tableName = (String) annotation.annotationType().getDeclaredMethod("value").invoke(annotation, (Object[]) null);
+        return String.format("\"%s\"", tableName);
     }
 
     @SneakyThrows
@@ -204,7 +198,7 @@ public abstract class BaseRepository<T> {
                 .map(field -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()))
                 .collect(Collectors.joining(","));
 
-        String query = String.format("select %s from \"%s\"", selectColumns, getTableName());
+        String query = String.format("select %s from %s", selectColumns, getTableName());
         if (!filter.isEmpty()) {
             String whereClause = " where " + filter.keySet().stream()
                     .map(this::whereKey)
@@ -227,7 +221,6 @@ public abstract class BaseRepository<T> {
         while (rs.next()) {
             result.add(convertToEntity(rs));
         }
-        connectionPool.releaseConnection(connection);
         return result;
     }
 

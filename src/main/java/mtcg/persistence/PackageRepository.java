@@ -28,6 +28,7 @@ public class PackageRepository extends BaseRepository<PackageEntity> {
     public List<CardPackage> getPackagesByUser(Long userId) {
         return getEntitiesByFilter("user_id", userId).stream()
                 .map(entity -> CardPackage.builder()
+                        .id(entity.getId())
                         .name(entity.getName())
                         .description(entity.getDescription())
                         .content(packagedItemsRepository.getItemsInPackage(entity.getId()))

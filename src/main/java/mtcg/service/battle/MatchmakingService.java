@@ -47,7 +47,7 @@ public class MatchmakingService {
                 saveResults(user, battleReport);
                 return battleReport;
             }
-            Thread.sleep(50);
+            Thread.sleep(100);
         }
         synchronized (queue) {
             queue.poll();

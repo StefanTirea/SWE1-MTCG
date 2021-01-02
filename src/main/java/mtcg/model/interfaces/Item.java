@@ -5,5 +5,7 @@ package mtcg.model.interfaces;
  */
 public interface Item {
 
+    Long getId();
+
     String getName();
 }

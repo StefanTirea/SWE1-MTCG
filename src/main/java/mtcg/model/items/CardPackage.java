@@ -2,21 +2,18 @@ package mtcg.model.items;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NonNull;
-import lombok.ToString;
 import mtcg.model.interfaces.Card;
 import mtcg.model.interfaces.ItemContainer;
 
 import java.util.List;
 
 @Builder
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
 public class CardPackage implements ItemContainer {
 
+    private final Long id;
     private final String name;
     private final String description;
     @NonNull
