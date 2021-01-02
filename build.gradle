@@ -46,7 +46,7 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'server.HttpServer'
+        attributes 'Main-Class': 'mtcg.MTCGServer'
     }
 }
 

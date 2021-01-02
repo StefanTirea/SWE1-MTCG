@@ -118,20 +118,28 @@ Includes:
 * All the cards with their weakness & attacks
 * Card Package
 
-Properly Testing all the Reflections is very hard and time consuming
-and probably requires even more code to provide proper mocks.
-I settled on Testing the most important Reflection class.
-<br><br>
 Github Actions are configured to build & test the application to ensure green tests before merging into master.
+
+### General Pitfalls
+
+Properly Testing all the Reflection classes is very hard and time-consuming.
+It would require even more code to implement something like `@InjectMockComponent`.
+
+The automatic configuration for most of the annoying stuff works pretty well.<br>
+However, because it is my first time writing this, it is not very configurable
+and very specific to my use case. Because of that, writing tests is very challenging and therefore, I only tested the most important class.
+
+Unfortunately I did not have the time to further improve the structure of it, to make
+IT easier (Lessons learned!).
 
 ## Time spent
 
-67h
+Around 67h +/- few hours.
 
 ## Getting Started
 
-Gradle is used to build the Project.
-Use `java -jar mtcg.jar` to run the HTTP Server.
+Use Gradle to build the Project with `gradew build`.
+Use `java -jar ./build/libs/SWE1-MTCG-1.0-SNAPSHOT.jar` to run the HTTP Server.
 
 ## Artifacts
 

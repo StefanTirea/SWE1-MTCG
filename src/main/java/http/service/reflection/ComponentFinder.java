@@ -1,5 +1,6 @@
 package http.service.reflection;
 
+import http.model.annotation.Component;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -7,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.reflections.Reflections;
-import http.model.annotation.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,9 +20,9 @@ import java.util.Set;
 public class ComponentFinder {
 
     @SneakyThrows
-    public static Map<Class<?>, Object> scanForComponents(String packageName) {
+    public static Map<Class<?>, Object> scanForComponents() {
         log.info("Dependency Injection: Instantiating Components");
-        Reflections reflections = new Reflections(packageName);
+        Reflections reflections = new Reflections("");
         Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(Component.class);
         int size = typesAnnotatedWith.size();
         Iterator<Class<?>> componentClasses = typesAnnotatedWith.iterator();
