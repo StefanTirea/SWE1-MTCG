@@ -11,6 +11,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Random;
 
+/**
+ * A very WIP way to Integration Test the Controllers (Don't judge me O.o)
+ * => Creates a new Context for every Test (approx. 800ms to recreate Dependency Injection, ...)
+ */
 public abstract class HttpServerITBase {
 
     private static final int PORT = new Random().nextInt(2000) + 9000;

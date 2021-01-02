@@ -44,15 +44,12 @@ public class ControllerFinder {
      * @param register                  is called when a {@link PathHandler} is registered
      * @param registerControllerObjects is called for each instantiated class annotated with {@link Controller}
      */
-    public static void scanForControllers(Consumer<PathHandler> register,
-                                          Consumer<Object> registerControllerObjects,
-                                          Consumer<FilterManager> registerFilterManager) {
-        Map<Class<?>, Object> componentObjects = scanForComponents(PACKAGE_NAME);
+    public static void scanForControllers(Map<Class<?>, Object> componentObjects,
+                                          Consumer<PathHandler> register,
+                                          Consumer<Object> registerControllerObjects) {
         log.info("Controller Finder: Search for Controller classes");
         Reflections reflections = new Reflections(PACKAGE_NAME);
         Set<Class<?>> controllerClasses = reflections.getTypesAnnotatedWith(Controller.class);
-
-        registerFilterManager.accept(scanForFilters(componentObjects));
 
         log.info("Controller Finder: Instantiating Controllers");
         controllerClasses.forEach(clazz -> {

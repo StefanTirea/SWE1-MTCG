@@ -10,6 +10,7 @@ import http.model.http.HttpResponse;
 import http.model.http.PathHandler;
 import http.model.interfaces.Authentication;
 import http.service.reflection.ControllerFinder;
+import http.service.reflection.FilterFinder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -25,6 +26,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static http.model.http.RequestContext.HTTP_EXCHANGE_CONTEXT;
+import static http.service.reflection.ComponentFinder.scanForComponents;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -37,7 +39,9 @@ public class RequestHandler {
     private FilterManager filterManager;
 
     public RequestHandler() {
-        ControllerFinder.scanForControllers(this::addRequestHandler, this::addObject, this::instantiateFilterManager);
+        Map<Class<?>, Object> componentObjects = scanForComponents();
+        ControllerFinder.scanForControllers(componentObjects, this::addRequestHandler, this::addObject);
+        this.filterManager = FilterFinder.scanForFilters(componentObjects);
     }
 
     public HttpResponse getHandlerOrThrow(HttpExchange exchange) {
@@ -158,9 +162,5 @@ public class RequestHandler {
             log.error("PathHandler {} already exists in registered handlers! Duplicate of {}", pathHandler, handlers.get(handlers.indexOf(pathHandler)));
             throw new IllegalStateException("Found PathHandler which !");
         }
-    }
-
-    private void instantiateFilterManager(FilterManager filterManager) {
-        this.filterManager = filterManager;
     }
 }

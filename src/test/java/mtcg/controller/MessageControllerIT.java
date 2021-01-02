@@ -11,6 +11,11 @@ import static http.model.enums.HttpStatus.NOT_FOUND;
 import static http.model.enums.HttpStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * ControllerIT works only by starting the PostgreSQL Container by yourself
+ * => Disable for Github Actions but can be run by the Dev
+ * => Testcontainers could be used when a better configuration file system is implemented
+ */
 @Disabled
 class MessageControllerIT extends HttpServerITBase {
 

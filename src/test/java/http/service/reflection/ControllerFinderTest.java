@@ -3,10 +3,11 @@ package http.service.reflection;
 import http.model.http.PathHandler;
 import http.service.handler.FilterManager;
 import mtcg.controller.MessageController;
-import org.apache.commons.lang3.tuple.Pair;
+import mtcg.service.MessageService;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,7 +18,6 @@ import static http.model.enums.HttpMethod.POST;
 import static http.model.enums.HttpMethod.PUT;
 import static http.service.reflection.ControllerFinder.getRegex;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.list;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -30,9 +30,8 @@ class ControllerFinderTest {
     void scanForControllers_verifyMessageController_worksProperly() {
         List<PathHandler> pathHandlers = spy(new ArrayList<>());
         List<Object> controllers = spy(new ArrayList<>());
-        List<FilterManager> filterManagers = spy(new ArrayList<>());
 
-        ControllerFinder.scanForControllers(pathHandlers::add, controllers::add, filterManagers::add);
+        ControllerFinder.scanForControllers(Map.of(MessageController.class, new MessageController(new MessageService())), pathHandlers::add, controllers::add);
         List<PathHandler> messagePathHandlers = pathHandlers.stream()
                 .filter(p -> p.getMethod().getDeclaringClass().equals(MessageController.class))
                 .collect(Collectors.toList());
@@ -44,15 +43,13 @@ class ControllerFinderTest {
                 .hasSize(5)
                 .flatExtracting(p -> p.getMethod().getName(),
                         PathHandler::getHttpMethod,
-                        PathHandler::getPath,
-                        PathHandler::getPathVariableTypes,
-                        PathHandler::getRequestBodyType)
+                        PathHandler::getPath)
                 .containsExactlyInAnyOrder(
-                        "getMessage", GET, "/messages/{id}", Map.of("id", int.class), null,
-                        "getMessages", GET, "/messages", emptyMap(), null,
-                        "createMessage", POST, "/messages", emptyMap(), Pair.of("message", String.class),
-                        "updateMessage", PUT, "/messages/{id}", Map.of("id", int.class), Pair.of("message", String.class),
-                        "deleteMessage", DELETE, "/messages/{id}", Map.of("id", int.class), null);
+                        "getMessage", GET, "/messages/{id}",
+                        "getMessages", GET, "/messages",
+                        "createMessage", POST, "/messages",
+                        "updateMessage", PUT, "/messages/{id}",
+                        "deleteMessage", DELETE, "/messages/{id}");
 
         verify(controllers, atLeast(1)).add(any());
         verify(pathHandlers, atLeast(5)).add(any());
