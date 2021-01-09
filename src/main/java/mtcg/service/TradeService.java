@@ -21,6 +21,9 @@ public class TradeService {
     private final TradingRepository tradingRepository;
 
     public boolean createTradeOffer(User user, TradingOffer tradingOffer) {
+        if (cardRepository.isCardLocked(tradingOffer.getCardId())) {
+            return false;
+        }
         cardRepository.updateCardLockStatus(tradingOffer.getCardId(), user.getId(), true);
         if (user.getDeck().stream().anyMatch(card -> card.getId().equals(tradingOffer.getCardId()))) {
             user.resetDeck();
@@ -31,25 +34,29 @@ public class TradeService {
     }
 
     public boolean acceptTradeOffer(User user, BattleCard card, Long tradeId) {
-        tradingRepository.getEntityById(tradeId).ifPresent(trade -> {
-            if (trade.getMinDamage() <= card.getDamage()
-                    && (card.getElementType().name().equals(trade.getType())
-                    || card.getMonsterType().name().equals(trade.getType()))) {
-                cardRepository.updateCardLockStatus(card.getId(), trade.getUserId(), false);
-                cardRepository.updateCardLockStatus(trade.getCardId(), user.getId(), false);
-                // Delete trade
-                if (user.getDeck().contains(card)) {
-                    user.resetDeck();
-                }
-                userRepository.updateUser(user);
-                tradingRepository.delete(tradeId);
-            }
-        });
-        return true;
+        return tradingRepository.selectEntityById(tradeId)
+                .filter(trade -> !trade.getUserId().equals(user.getId()))
+                .map(trade -> {
+                    if (trade.getMinDamage() <= card.getDamage()
+                            && (card.getElementType().name().equals(trade.getType())
+                            || (card.getMonsterType() != null && card.getMonsterType().name().equals(trade.getType())))) {
+                        cardRepository.updateCardLockStatus(card.getId(), trade.getUserId(), false);
+                        cardRepository.updateCardLockStatus(trade.getCardId(), user.getId(), false);
+                        // Delete trade
+                        if (user.getDeck().contains(card)) {
+                            user.resetDeck();
+                        }
+                        userRepository.updateUser(user);
+                        tradingRepository.delete(tradeId);
+                        return true;
+                    }
+                    return false;
+                })
+                .orElse(false);
     }
 
     public List<TradingOffer> getAllTradingOffers() {
-        return tradingRepository.getEntitiesByFilter().stream()
+        return tradingRepository.selectEntitiesByFilter().stream()
                 .map(entity -> TradingOffer.builder()
                         .id(entity.getId())
                         .card(cardRepository.getBattleCard(entity.getCardId()).orElseThrow())
@@ -57,5 +64,16 @@ public class TradeService {
                         .type(entity.getType())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public boolean deleteTradeOffer(User user, Long tradeId) {
+        return tradingRepository.selectEntityById(tradeId)
+                .filter(trade -> trade.getUserId().equals(user.getId()))
+                .map(trade -> {
+                    tradingRepository.delete(tradeId);
+                    cardRepository.updateCardLockStatus(trade.getCardId(), user.getId(), false);
+                    return true;
+                })
+                .orElse(false);
     }
 }

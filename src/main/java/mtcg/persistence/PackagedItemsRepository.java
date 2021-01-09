@@ -18,7 +18,7 @@ public class PackagedItemsRepository extends BaseRepository<PackagedItemsEntity>
     }
 
     public List<BattleCard> getItemsInPackage(Long packageId) {
-        return cardRepository.getBattleCardsByIds(getEntitiesByFilter("package_id", packageId).stream()
+        return cardRepository.getBattleCardsByIds(selectEntitiesByFilter("package_id", packageId).stream()
                 .map(PackagedItemsEntity::getCardId)
                 .collect(Collectors.toList()));
     }

@@ -52,11 +52,11 @@ public class UserService {
 
     public HttpResponse editUser(User user, UserData userData) {
         if (userData.valid() && (!user.getUsername().equals(userData.getUsername())
-                || userRepository.getEntitiesByFilter("username", userData.getUsername()).isEmpty())) {
+                || userRepository.selectEntitiesByFilter("username", userData.getUsername()).isEmpty())) {
             userRepository.updateUserCredentials(user.getId(), userData.getUsername(), userData.getPassword());
             return HttpResponse.builder().httpStatus(HttpStatus.OK).build();
         }
-        return HttpResponse.builder().httpStatus(HttpStatus.BAD_REQUEST).build();
+        return HttpResponse.builder().httpStatus(HttpStatus.BAD_REQUEST).content("User Data did not change!").build();
     }
 
     public HttpResponse loginUser(UserData userData) {

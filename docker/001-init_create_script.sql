@@ -105,15 +105,17 @@ ALTER TABLE package ADD CONSTRAINT package_user
 -- Reference: packaged_items_card (table: packaged_items)
 ALTER TABLE packaged_items ADD CONSTRAINT packaged_items_card
     FOREIGN KEY (card_id)
-    REFERENCES card (id)  
-    NOT DEFERRABLE 
+    REFERENCES card (id)
+    ON DELETE  CASCADE
+    NOT DEFERRABLE
     INITIALLY IMMEDIATE
 ;
 
 -- Reference: packaged_items_package (table: packaged_items)
 ALTER TABLE packaged_items ADD CONSTRAINT packaged_items_package
     FOREIGN KEY (package_id)
-    REFERENCES package (id)  
+    REFERENCES package (id)
+    ON DELETE  CASCADE
     NOT DEFERRABLE 
     INITIALLY IMMEDIATE
 ;

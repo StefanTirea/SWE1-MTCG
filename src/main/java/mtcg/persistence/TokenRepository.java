@@ -2,7 +2,6 @@ package mtcg.persistence;
 
 import http.model.annotation.Component;
 import mtcg.model.entity.TokenEntity;
-import http.service.persistence.ConnectionPool;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -15,10 +14,10 @@ public class TokenRepository extends BaseRepository<TokenEntity> {
     }
 
     public Optional<TokenEntity> getToken(String token) {
-        return getEntityByFilter("token", token, "expires_at >=", LocalDateTime.now());
+        return selectEntityByFilter("token", token, "expires_at >=", LocalDateTime.now());
     }
 
     public Optional<TokenEntity> getTokenByUser(Long userId) {
-        return getEntityByFilter("user_id",userId, "expires_at >=", LocalDateTime.now());
+        return selectEntityByFilter("user_id",userId, "expires_at >=", LocalDateTime.now());
     }
 }

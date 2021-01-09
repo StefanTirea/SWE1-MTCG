@@ -35,19 +35,19 @@ public abstract class BaseRepository<T> {
 
     private final Class<T> type;
 
-    public List<T> getEntitiesById(Long id) {
-        return getEntitiesByFilter("id", id);
+    public List<T> selectEntitiesById(Long id) {
+        return selectEntitiesByFilter("id", id);
     }
 
-    public Optional<T> getEntityById(Long id) {
-        return getEntityByFilter("id", id);
+    public Optional<T> selectEntityById(Long id) {
+        return selectEntityByFilter("id", id);
     }
 
-    public List<T> getEntitiesByFilter(Object... args) {
+    public List<T> selectEntitiesByFilter(Object... args) {
         return select(args);
     }
 
-    public Optional<T> getEntityByFilter(Object... args) {
+    public Optional<T> selectEntityByFilter(Object... args) {
         return select(args).stream().findFirst();
     }
 
@@ -92,7 +92,7 @@ public abstract class BaseRepository<T> {
                 }
             } catch (PSQLException e) {
                 e.printStackTrace();
-                throw new BadRequestException("Choose an other username!"); // TODO create new unique constraint exception
+                throw new BadRequestException("SQL insert failed!"); // TODO create new unique constraint exception
             }
         }
     }
@@ -124,7 +124,8 @@ public abstract class BaseRepository<T> {
         try {
             preparedStatement.execute();
         } catch (PSQLException e) {
-            throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
+            e.printStackTrace();
+            throw new BadRequestException("SQL Update Failed!");// TODO create new unique constraint exception
         }
         return true;
     }
@@ -156,7 +157,8 @@ public abstract class BaseRepository<T> {
         try {
             preparedStatement.execute();
         } catch (PSQLException e) {
-            throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
+            e.printStackTrace();
+            throw new BadRequestException("SQL Update Failed!");// TODO create new unique constraint exception
         }
         return true;
     }
@@ -173,7 +175,8 @@ public abstract class BaseRepository<T> {
         try {
             preparedStatement.execute();
         } catch (PSQLException e) {
-            throw new BadRequestException("Choose an other username!");// TODO create new unique constraint exception
+            e.printStackTrace();
+            throw new BadRequestException("SQL Delete Failed!");// TODO create new unique constraint exception
         }
         return true;
     }

@@ -46,6 +46,10 @@ public class ItemService {
                 .filter(Objects::nonNull)
                 .map(Number::longValue)
                 .collect(Collectors.toList());
+        List<Long> previousDeck = user.getDeck().stream().map(Item::getId).collect(Collectors.toList());
+        if (ids.equals(previousDeck)) {
+            return false;
+        }
         boolean result = user.createDeck(ids);
         userRepository.updateUser(user);
         return result;
