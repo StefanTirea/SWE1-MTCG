@@ -27,7 +27,7 @@ public class BattleResultRepository extends BaseRepository<BattleResultEntity> {
     }
 
     public List<BattleReport> getLatestGames(Long userId) {
-        return getEntitiesByFilter("user_id", userId, "time >=", LocalDateTime.now().minusDays(5)).stream()
+        return selectEntitiesByFilter("user_id", userId, "time >=", LocalDateTime.now().minusDays(5)).stream()
                 .map(result -> BattleReport.builder()
                         .eloChange(result.getEloChange())
                         .rounds(result.getRounds())

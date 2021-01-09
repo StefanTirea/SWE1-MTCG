@@ -21,18 +21,18 @@ public class CardRepository extends BaseRepository<CardEntity> {
     }
 
     public List<BattleCard> getBattleCardsByUser(Long userId) {
-        return getEntitiesByFilter("user_id", userId).stream()
+        return selectEntitiesByFilter("user_id", userId).stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
 
     public Optional<BattleCard> getBattleCard(Long cardId) {
-        return getEntityById(cardId)
+        return selectEntityById(cardId)
                 .map(this::convert);
     }
 
     public List<BattleCard> getBattleCardsByIds(List<Long> cardIds) {
-        return getEntitiesByFilter("id in", cardIds).stream()
+        return selectEntitiesByFilter("id in", cardIds).stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
@@ -46,8 +46,7 @@ public class CardRepository extends BaseRepository<CardEntity> {
                         .damage(battleCard.getDamage())
                         .elementType(battleCard.getElementType())
                         .monsterType(battleCard.getMonsterType())
-                        .build()
-                )
+                        .build())
                 .map(this::insert)
                 .collect(Collectors.toList());
     }
@@ -57,8 +56,7 @@ public class CardRepository extends BaseRepository<CardEntity> {
                 .map(cardId -> CardEntity.builder()
                         .id(cardId)
                         .userId(userId)
-                        .build()
-                )
+                        .build())
                 .forEach(this::update);
         return true;
     }
@@ -69,6 +67,10 @@ public class CardRepository extends BaseRepository<CardEntity> {
                 .userId(userId)
                 .locked(locked)
                 .build());
+    }
+
+    public boolean isCardLocked(Long cardId) {
+        return selectEntityById(cardId).map(CardEntity::getLocked).orElse(true);
     }
 
     private BattleCard convert(CardEntity cardEntity) {

@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 public class CardPackage implements ItemContainer {
 
+    @JsonIgnore
     private final Long id;
     private final String name;
     private final String description;

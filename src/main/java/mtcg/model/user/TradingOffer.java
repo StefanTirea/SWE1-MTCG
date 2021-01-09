@@ -2,6 +2,7 @@ package mtcg.model.user;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import mtcg.model.interfaces.BattleCard;
@@ -11,6 +12,7 @@ import mtcg.model.interfaces.BattleCard;
 public class TradingOffer {
 
     private Long id;
+    @JsonProperty
     private Long cardId;
     @JsonIgnore
     private BattleCard card;

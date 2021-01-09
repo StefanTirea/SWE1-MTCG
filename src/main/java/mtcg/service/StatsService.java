@@ -23,13 +23,13 @@ public class StatsService {
                 .username(user.getUsername())
                 .elo(user.getElo())
                 .gamesPlayed(user.getGamesPlayed())
-                .winRate(String.format("%.0f%%", (float) (100 * user.getGamesWon()) / user.getGamesPlayed()))
+                .winRate(user.getGamesPlayed() == 0 ? "0%" : String.format("%.0f%%", (float) (100 * user.getGamesWon()) / user.getGamesPlayed()))
                 .gamesHistory(battleResultRepository.getLatestGames(user.getId()))
                 .build();
     }
 
     public List<Map<String, Integer>> getEloStats() {
-        return userRepository.getEntitiesByFilter().stream()
+        return userRepository.selectEntitiesByFilter().stream()
                 .sorted((user1, user2) -> Integer.compare(user2.getElo(), user1.getElo()))
                 .map(user -> Map.of(user.getUsername(), user.getElo()))
                 .collect(Collectors.toList());

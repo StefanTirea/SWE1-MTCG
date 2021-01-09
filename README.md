@@ -113,7 +113,6 @@ Includes:
 * The Request converter to insure proper conversion to the desired type
 * Exception Response handling
 * One IT for the Controller
-* The Battle System
 * CardGenerator & the custom rule system
 * All the cards with their weakness & attacks
 * Card Package
