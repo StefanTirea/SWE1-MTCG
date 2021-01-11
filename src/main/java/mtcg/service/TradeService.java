@@ -38,8 +38,7 @@ public class TradeService {
                 .filter(trade -> !trade.getUserId().equals(user.getId()))
                 .map(trade -> {
                     if (trade.getMinDamage() <= card.getDamage()
-                            && (card.getElementType().name().equals(trade.getType())
-                            || (card.getMonsterType() != null && card.getMonsterType().name().equals(trade.getType())))) {
+                            && (trade.getType().equals("MONSTER") && card.getMonsterType() != null)) {
                         cardRepository.updateCardLockStatus(card.getId(), trade.getUserId(), false);
                         cardRepository.updateCardLockStatus(trade.getCardId(), user.getId(), false);
                         // Delete trade

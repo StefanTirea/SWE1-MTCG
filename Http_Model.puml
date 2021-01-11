@@ -1,0 +1,91 @@
+@startuml
+interface http.model.interfaces.Authentication {
+~ Long getId()
+~ Collection<String> getRoles()
+}
+interface http.model.interfaces.Filter {
+~ void doFilter(HttpExchange)
+}
+class http.model.http.HttpExchange {
+- HttpRequest request
+- HttpResponse response
+- Optional<Authentication> user
++ String getRequestPath()
++ String getRequestContent()
++ HttpMethod getRequestHttpMethod()
+}
+class http.model.exception.BadRequestException {
+}
+class http.model.http.HttpRequest {
+- String version
+- HttpMethod httpMethod
+- String path
+- Map<String,String> headers
+- String content
++ {static} Optional<HttpRequest> build(List<String>,BufferedReader)
++ ContentType getContentType()
++ String getHeaderBearerToken()
+- {static} Map<String,String> mapRequestHeaders(List<String>)
+- {static} String readBodyContent(Map<String,String>,BufferedReader)
+- {static} int getContentLength(Map<String,String>)
+}
+class http.model.http.HttpResponse {
+- {static} String HTTP_VERSION
+- HttpStatus httpStatus
+- Map<String,String> headers
+- Object content
++ {static} HttpResponse noContent()
++ String getResponseString()
+- String getHeadersString()
+- String getResponseBody()
+}
+interface http.model.interfaces.PostFilter {
+}
+class http.model.exception.InternalServerErrorException {
+}
+class http.model.exception.HttpRequestParseException {
+}
+class http.model.http.PathHandler {
+- String path
+- String regexPath
+- HttpMethod httpMethod
+- Method method
+- List<String> pathVariableOrder
+- Map<String,Class<?>> pathVariableTypes
+- Map<String,Class<?>> requestParameterTypes
+- Pair<String,Class<?>> requestBodyType
+- List<String> requiredRoles
++ boolean equals(Object)
++ int hashCode()
+}
+class http.model.http.RequestContext {
++ {static} ThreadLocal<HttpExchange> HTTP_EXCHANGE_CONTEXT
+}
+class http.model.exception.PathVariableConvertingException {
+}
+class http.model.exception.MethodNotAllowedException {
+}
+class http.model.exception.UnauthorizedException {
+}
+class http.model.exception.HttpException {
+- HttpStatus httpStatus
+}
+interface http.model.interfaces.PreFilter {
+~ void doFilter(HttpExchange)
+}
+class http.model.exception.ForbiddenException {
+}
+
+
+java.security.Principal <|-- http.model.interfaces.Authentication
+http.model.exception.HttpException <|-- http.model.exception.BadRequestException
+http.model.interfaces.Filter <|-- http.model.interfaces.PostFilter
+http.model.exception.HttpException <|-- http.model.exception.InternalServerErrorException
+http.model.exception.RuntimeException <|-- http.model.exception.HttpRequestParseException
+http.model.exception.RuntimeException <|-- http.model.exception.PathVariableConvertingException
+http.model.exception.HttpException <|-- http.model.exception.MethodNotAllowedException
+http.model.exception.HttpException <|-- http.model.exception.UnauthorizedException
+http.model.exception.RuntimeException <|-- http.model.exception.HttpException
+http.model.interfaces.Filter <|-- http.model.interfaces.PreFilter
+http.model.exception.HttpException <|-- http.model.exception.ForbiddenException
+@enduml

@@ -1,0 +1,107 @@
+@startuml
+class http.service.handler.RequestConverter {
+- Map<Class<?>,Function<String,Object>> stringToObjectConverter
++ Object convertToObject(Class<?>,String)
++ Object convertToPrimitive(Class<?>,String)
+- void getPrimitiveTypeConverters()
+- Object jsonToObject(Class<?>,String)
+}
+class http.service.persistence.ConnectionPool {
+- DatabaseConfig databaseConfig
+- Deque<Connection> pool
+- List<Connection> allConnections
+- int openConnections
++ void setConnection()
++ void releaseConnection(boolean)
+- Connection createConnection()
+- void closeConnections()
+}
+class http.service.reflection.ControllerFinder {
+- {static} String PACKAGE_NAME
+- {static} String ANNOTATION_PATH_METHOD_NAME
+- {static} String ANNOTATION_HTTP_METHOD_NAME
++ {static} void scanForControllers(Map<Class<?>,Object>,Consumer<PathHandler>,Consumer<Object>)
+- {static} Pair<String,HttpMethod> mapPathAndHttpMethod(Method)
+- {static} PathHandler mapPathHandler(Method,Pair<String,HttpMethod>)
+- {static} List<String> mapRequiredRoles(Method)
+- {static} List<String> mapPathVariableOrder(String)
+- {static} Map<String,Class<?>> mapPathVariableTypes(Method)
+- {static} Pair<String,Class<?>> mapRequestBodyType(Method)
+~ {static} String getRegex(String)
+}
+class http.service.handler.FilterManager {
+- List<Filter> preFilters
+- List<Filter> postFilters
+- ConnectionPool connectionPool
++ HttpResponse handleRequest(PathHandler,Object,Object[])
+- void injectUser(Method,Object[])
+- void checkRoles(List<String>)
+- void doFilterBefore()
+- void doFilterAfter()
+}
+class http.service.persistence.DatabaseConfig {
+- {static} String PATH_TO_CONFIG
+- String ip
+- String database
+- int port
+- String username
+- String password
+- int poolSize
++ {static} DatabaseConfig getConfig()
++ String getConnectionString()
+}
+class http.service.handler.ResponseConverter {
++ {static} HttpResponse convertToHttpResponse(Object,HttpMethod)
+- {static} HttpStatus getStatus(HttpMethod)
+}
+class http.service.persistence.ConnectionContext {
++ {static} ThreadLocal<Connection> CONNECTION
+}
+class http.service.handler.ErrorHandler {
++ {static} HttpResponse handleError(Exception)
+- {static} HttpResponse getResponseWithStatus(HttpException)
++ {static} HttpResponse getNotFoundError()
+- {static} HttpResponse getInternalServerError(InternalServerErrorException)
+- {static} Map<String,String> buildErrorResponse(HttpException)
+- {static} String mapExceptionCause(InternalServerErrorException)
+}
+class http.service.http.HttpServer {
+- int port
+- RequestHandler requestHandler
+- ServerSocket server
+- boolean running
++ void run()
++ void stop()
+}
+class http.service.reflection.ComponentFinder {
++ {static} Map<Class<?>,Object> scanForComponents()
+}
+class http.service.handler.RequestHandler {
+- List<PathHandler> handlers
+- List<Object> controllerObjects
+- RequestConverter requestConverter
+- FilterManager filterManager
++ HttpResponse getHandlerOrThrow(HttpExchange)
+- Optional<PathHandler> getPathHandler(HttpExchange)
+- Object[] getControllerMethodParameters(PathHandler,String,String)
+- Object convertRequestBody(PathHandler,String)
+- Map<String,Object> convertPathVariables(PathHandler,String)
+- void addObject(Object)
+- void addRequestHandler(PathHandler)
+}
+class http.service.http.RequestWorker {
+- Socket client
+- RequestHandler requestHandler
++ void run()
+- void processRequestAndRespond(List<String>,BufferedReader)
+- void sendResponse(HttpResponse)
+}
+class http.service.reflection.FilterFinder {
+- {static} String PACKAGE_NAME
++ {static} FilterManager scanForFilters(Map<Class<?>,Object>)
+- {static} void buildFilters(List<Class<? extends Filter>>,Map<Class<?>,Object>,List<Filter>)
+}
+
+
+http.service.http.Runnable <|.. http.service.http.RequestWorker
+@enduml

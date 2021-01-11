@@ -1,0 +1,140 @@
+@startuml
+class mtcg.service.battle.BattleService {
++ void registerBattleId(String,User)
++ void initBattle(String,User)
++ BattleStatus getBattleStatus(String)
++ BattleReport getBattleReport(String,String)
+}
+class mtcg.persistence.BattleResultRepository {
++ boolean saveBattleReport(BattleReport,Long)
++ List<BattleReport> getLatestGames(Long)
+}
+class mtcg.persistence.TokenRepository {
++ Optional<TokenEntity> getToken(String)
++ Optional<TokenEntity> getTokenByUser(Long)
+}
+class mtcg.service.battle.MatchmakingService {
++ BattleReport searchBattle(User)
+}
+class mtcg.service.UserService {
++ Optional<Authentication> authenticateUser(String)
++ boolean registerUser(UserData)
++ HttpResponse editUser(User,UserData)
++ HttpResponse loginUser(UserData)
+}
+class mtcg.service.TradeService {
++ boolean createTradeOffer(User,TradingOffer)
++ boolean acceptTradeOffer(User,BattleCard,Long)
++ List<TradingOffer> getAllTradingOffers()
++ boolean deleteTradeOffer(User,Long)
+}
+class mtcg.controller.ShopController {
++ List<Card> openPackage(User)
++ CardPackage buyPackage(User)
++ HttpResponse createTradingOffer(User,TradingOffer)
++ List<TradingOffer> listTradingOffers()
++ boolean deleteTradeOffer(User,Long)
++ HttpResponse acceptTradingOffer(User,Long,Long)
+}
+class mtcg.controller.StatsController {
++ BattleStats getUserStats(User)
++ List<Map<String,Integer>> getEloStats()
+}
+class mtcg.service.card.CardRules {
++ {static} RuleResult checkRulesMonsterVsMonster(MonsterCard,MonsterCard)
++ {static} RuleResult checkRulesMonsterVsSpell(MonsterCard,SpellCardAttacking,boolean)
+}
+class mtcg.controller.MessageController {
++ Map<Integer,String> getMessages()
++ Optional<String> getMessage(int)
++ Map<String,Integer> createMessage(String)
++ Optional<String> updateMessage(int,String)
++ Optional<String> deleteMessage(int)
+}
+class mtcg.service.StatsService {
++ BattleStats getUserStats(User)
++ List<Map<String,Integer>> getEloStats()
+}
+abstract class mtcg.persistence.BaseRepository {
++ List<T> selectEntitiesById(Long)
++ Optional<T> selectEntityById(Long)
++ List<T> selectEntitiesByFilter(Object)
++ Optional<T> selectEntityByFilter(Object)
++ Long insert(T)
++ boolean update(T)
++ boolean update(Long,Object)
++ boolean delete(Long)
+}
+class mtcg.service.MessageService {
++ Optional<String> getMessage(int)
++ int createMessage(String)
++ Optional<String> updateMessage(int,String)
++ Optional<String> deleteMessage(int)
+}
+class mtcg.controller.BattleController {
++ BattleReport searchBattle(User)
+}
+class mtcg.persistence.CardRepository {
++ List<BattleCard> getBattleCardsByUser(Long)
++ Optional<BattleCard> getBattleCard(Long)
++ List<BattleCard> getBattleCardsByIds(List<Long>)
++ List<Long> saveBattleCardWithoutUser(List<? extends Item>)
++ boolean updateBattleCards(List<Long>,Long)
++ void updateCardLockStatus(Long,Long,boolean)
++ boolean isCardLocked(Long)
+}
+class mtcg.persistence.UserRepository {
++ Optional<UserEntity> getUserByToken(String)
++ HttpResponse loginUser(UserData)
++ boolean createUser(UserData)
++ boolean updateUser(User)
++ boolean updateUserCredentials(Long,String,String)
+}
+class mtcg.persistence.TradingRepository {
++ boolean saveTradingOffer(TradingOffer,Long)
+}
+class mtcg.service.ItemService {
++ List<Item> getInventoryByUser(Long)
++ List<BattleCard> getDeck(List<Long>,List<Item>)
++ boolean createDeck(User,List<Number>)
++ List<Card> openPackage(User)
++ CardPackage buyPackage(User)
+}
+class mtcg.persistence.PackageRepository {
++ List<CardPackage> getPackagesByUser(Long)
++ boolean savePackage(CardPackage,Long)
+}
+class mtcg.controller.CardController {
++ HttpResponse createDeck(User,List<Number>)
++ List<BattleCard> getCardsFromUser(User)
++ List<BattleCard> getDeckFromUser(User)
+}
+class mtcg.persistence.PackagedItemsRepository {
++ List<BattleCard> getItemsInPackage(Long)
++ boolean insertCardInPackage(List<Long>,Long)
+}
+class mtcg.config.filter.BearerAuthenticationFilter {
++ void doFilter(HttpExchange)
+}
+class mtcg.controller.UserController {
++ User showUser(User)
++ boolean registerUser(UserData)
++ HttpResponse editUser(User,UserData)
++ HttpResponse loginUser(UserData)
+}
+class mtcg.service.card.CardGenerator {
++ MonsterCard generateMonsterCard()
++ SpellCardAttacking generateSpellCardAttacking()
++ CardPackage generateCardPackage(int)
+}
+
+
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.BattleResultRepository
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.TokenRepository
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.CardRepository
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.UserRepository
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.TradingRepository
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.PackageRepository
+mtcg.persistence.BaseRepository <|-- mtcg.persistence.PackagedItemsRepository
+http.model.interfaces.PreFilter <|.. mtcg.config.filter.BearerAuthenticationFilter
+@enduml
