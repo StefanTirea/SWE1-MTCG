@@ -137,7 +137,7 @@ Around 67h +/- few hours.
 
 ## Getting Started
 
-Use Gradle to build the Project with `gradew build`.
+Use Gradle to build the Project with `gradlew build`.
 Use `java -jar ./build/libs/SWE1-MTCG-1.0-SNAPSHOT.jar` to run the HTTP Server.
 
 ## Artifacts
